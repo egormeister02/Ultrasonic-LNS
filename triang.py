@@ -155,7 +155,17 @@ def solve_bfgs(sensors, distances, x0):
 # ОДНО ИЗМЕРЕНИЕ
 # -------------------------------------------------------
 
-def run_trial(sensors, H=20):
+def run_trial(sensors, H=20, bias_std=0.05, variance_std=0.1):
+    """
+    Модель ошибок с bias + variance:
+    - bias: ошибка расчёта скорости звука (систематическая), 
+            одинаковая для всех расстояний в эксперименте
+    - variance: случайная ошибка для каждого измерения
+    
+    Параметры:
+    - bias_std: стандартное отклонение bias (% от расстояния)
+    - variance_std: стандартное отклонение случайного шума (метры)
+    """
     # истинное положение с шумом ±2 м
     true_pos = np.array([
         add_noise(0, 4),
@@ -166,8 +176,15 @@ def run_trial(sensors, H=20):
     # истинные расстояния
     true_dist = np.array([np.linalg.norm(true_pos - s) for s in sensors])
 
-    # шум расстояний ±0.2 м
-    noisy_dist = np.array([add_noise(d, 0.2) for d in true_dist])
+    # --- ОШИБКИ: bias + variance ---
+    # 1. Bias — определяется случайно в начале эксперимента (% от расстояния)
+    bias = np.random.normal(0, bias_std)  # например, ±5% от истинного расстояния
+    
+    # 2. Variance — случайная ошибка для каждого измерения
+    variance = np.random.normal(0, variance_std, size=len(sensors))
+    
+    # Применяем: d_noisy = d_true * (1 + bias) + variance
+    noisy_dist = true_dist * (1 + bias) + variance
 
     # ------- АНАЛИТИКА ПО ТРОЙКАМ -------
     tris = list(itertools.combinations(range(len(sensors)), 3))
@@ -208,10 +225,18 @@ def run_trial(sensors, H=20):
 # СЕРИЯ ИЗМЕРЕНИЙ
 # -------------------------------------------------------
 
-def run_experiment(sensors, n=20):
+def run_experiment(sensors, n=20, bias_std=0.05, variance_std=0.1):
+    """
+    Параметры ошибок:
+    - bias_std: стандартное отклонение bias (% от расстояния)
+    - variance_std: стандартное отклонение случайного шума (метры)
+    """
     results = []
+    bias_values = []  # для анализа
     for _ in range(n):
-        true_pos, analytic, gn, soft_l1, linear, bfgs = run_trial(sensors)
+        true_pos, analytic, gn, soft_l1, linear, bfgs = run_trial(
+            sensors, H=20, bias_std=bias_std, variance_std=variance_std
+        )
         if analytic is None:
             continue
 
@@ -222,6 +247,7 @@ def run_experiment(sensors, n=20):
         err_bfgs = np.linalg.norm(bfgs - true_pos)
 
         results.append([err_an, err_gn, err_soft, err_lin, err_bfgs])
+    
     return np.array(results)
 
 
@@ -251,19 +277,40 @@ sensors5 = np.array([
 # ЗАПУСК ЭКСПЕРИМЕНТОВ
 # -------------------------------------------------------
 
-res4 = run_experiment(sensors4, n=50)
-res5 = run_experiment(sensors5, n=50)
+# Параметры модели ошибок:
+# - bias_std: систематическая ошибка скорости звука (% от расстояния)
+# - variance_std: случайный шум измерений (метры)
 
-df4 = pd.DataFrame(res4, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
-df5 = pd.DataFrame(res5, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
+print("Эксперимент 1: small bias (1%), small variance (0.05m)")
+res4_small = run_experiment(sensors4, n=50, bias_std=0.01, variance_std=0.05)
+res5_small = run_experiment(sensors5, n=50, bias_std=0.01, variance_std=0.05)
 
-print("=" * 60)
-print("4 датчика:")
-print("=" * 60)
-print(df4.describe().loc[['mean', 'std', 'min', 'max']])
-print()
+print("Эксперимент 2: medium bias (5%), medium variance (0.1m)")
+res4_med = run_experiment(sensors4, n=50, bias_std=0.05, variance_std=0.1)
+res5_med = run_experiment(sensors5, n=50, bias_std=0.05, variance_std=0.1)
 
-print("=" * 60)
-print("5 датчиков:")
-print("=" * 60)
-print(df5.describe().loc[['mean', 'std', 'min', 'max']])
+print("Эксперимент 3: large bias (10%), large variance (0.2m)")
+res4_large = run_experiment(sensors4, n=50, bias_std=0.10, variance_std=0.2)
+res5_large = run_experiment(sensors5, n=50, bias_std=0.10, variance_std=0.2)
+
+# Функция для вывода результатов
+def print_results(name, df):
+    print("=" * 60)
+    print(name)
+    print("=" * 60)
+    print(df.describe().loc[['mean', 'std', 'min', 'max']])
+    print()
+
+df4_small = pd.DataFrame(res4_small, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
+df5_small = pd.DataFrame(res5_small, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
+df4_med = pd.DataFrame(res4_med, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
+df5_med = pd.DataFrame(res5_med, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
+df4_large = pd.DataFrame(res4_large, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
+df5_large = pd.DataFrame(res5_large, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
+
+print_results("4 датчика, small bias+var", df4_small)
+print_results("5 датчиков, small bias+var", df5_small)
+print_results("4 датчика, medium bias+var", df4_med)
+print_results("5 датчиков, medium bias+var", df5_med)
+print_results("4 датчика, large bias+var", df4_large)
+print_results("5 датчиков, large bias+var", df5_large)
