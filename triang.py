@@ -101,6 +101,57 @@ def solve_with_scipy(sensors, distances, analytic_avg, sigma_r=0.1):
 
 
 # -------------------------------------------------------
+# АЛЬТЕРНАТИВНЫЕ МЕТОДЫ ОПТИМИЗАЦИИ
+# -------------------------------------------------------
+
+def residuals(x, sensors, distances):
+    """Вектор невязок: ||x - s_i|| - d_i"""
+    return np.linalg.norm(x - sensors, axis=1) - distances
+
+
+# 1. Soft L1 Loss — менее агрессивно штрафует большие ошибки
+def solve_soft_l1(sensors, distances, x0):
+    res = least_squares(
+        residuals, x0,
+        args=(sensors, distances),
+        method='trf',
+        loss='soft_l1',  # отличие от LM
+        f_scale=0.1,
+        max_nfev=200
+    )
+    return res.x, res.cost
+
+
+# 2. Linear Loss (L1) — минимизирует сумму абсолютных невязок
+def solve_linear_loss(sensors, distances, x0):
+    res = least_squares(
+        residuals, x0,
+        args=(sensors, distances),
+        method='trf',
+        loss='linear',  # L1 loss
+        max_nfev=200
+    )
+    return res.x, res.cost
+
+
+# 3. BFGS — квази-ньютоновский метод
+from scipy.optimize import minimize
+
+def objective_bfgs(x, sensors, distances):
+    r = np.linalg.norm(x - sensors, axis=1) - distances
+    return 0.5 * np.sum(r**2)
+
+def solve_bfgs(sensors, distances, x0):
+    res = minimize(
+        objective_bfgs, x0,
+        args=(sensors, distances),
+        method='BFGS',
+        options={'maxiter': 200}
+    )
+    return res.x, res.fun
+
+
+# -------------------------------------------------------
 # ОДНО ИЗМЕРЕНИЕ
 # -------------------------------------------------------
 
@@ -131,15 +182,26 @@ def run_trial(sensors, H=20):
     if sols:
         analytic = np.mean(sols, axis=0)
 
-    # ------- ГАУСС–НЬЮТОН (LM) -------
+    # начальное приближение
     if sols:
         x0 = sols[0]
     else:
         x0 = np.array([0, 0, H])
 
-    gn, cost = solve_with_scipy(sensors, noisy_dist, analytic, sigma_r=0.1)
+    # ------- ВСЕ МЕТОДЫ ОПТИМИЗАЦИИ -------
+    # 1. Текущий LM с Huber (как раньше)
+    gn, _ = solve_with_scipy(sensors, noisy_dist, analytic, sigma_r=0.1)
+    
+    # 2. Soft L1
+    soft_l1, _ = solve_soft_l1(sensors, noisy_dist, x0)
+    
+    # 3. Linear (L1)
+    linear, _ = solve_linear_loss(sensors, noisy_dist, x0)
+    
+    # 4. BFGS
+    bfgs, _ = solve_bfgs(sensors, noisy_dist, x0)
 
-    return true_pos, analytic, gn
+    return true_pos, analytic, gn, soft_l1, linear, bfgs
 
 
 # -------------------------------------------------------
@@ -149,14 +211,17 @@ def run_trial(sensors, H=20):
 def run_experiment(sensors, n=20):
     results = []
     for _ in range(n):
-        true_pos, analytic, gn = run_trial(sensors)
+        true_pos, analytic, gn, soft_l1, linear, bfgs = run_trial(sensors)
         if analytic is None:
             continue
 
         err_an = np.linalg.norm(analytic - true_pos)
         err_gn = np.linalg.norm(gn - true_pos)
+        err_soft = np.linalg.norm(soft_l1 - true_pos)
+        err_lin = np.linalg.norm(linear - true_pos)
+        err_bfgs = np.linalg.norm(bfgs - true_pos)
 
-        results.append([err_an, err_gn])
+        results.append([err_an, err_gn, err_soft, err_lin, err_bfgs])
     return np.array(results)
 
 
@@ -186,34 +251,19 @@ sensors5 = np.array([
 # ЗАПУСК ЭКСПЕРИМЕНТОВ
 # -------------------------------------------------------
 
-res4 = run_experiment(sensors4)
-res5 = run_experiment(sensors5)
+res4 = run_experiment(sensors4, n=50)
+res5 = run_experiment(sensors5, n=50)
 
-df4 = pd.DataFrame(res4, columns=["analytic", "gn"])
-df5 = pd.DataFrame(res5, columns=["analytic", "gn"])
+df4 = pd.DataFrame(res4, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
+df5 = pd.DataFrame(res5, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
 
-print("4 sensors:\n", df4.describe(), "\n")
-print("5 sensors:\n", df5.describe(), "\n")
+print("=" * 60)
+print("4 датчика:")
+print("=" * 60)
+print(df4.describe().loc[['mean', 'std', 'min', 'max']])
+print()
 
-
-
-# -------------------------------------------------------
-# ГИСТОГРАММЫ
-# -------------------------------------------------------
-
-fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-
-axes[0,0].hist(df4["analytic"], bins=20)
-axes[0,0].set_title("4 датчика — Аналитика")
-
-axes[0,1].hist(df4["gn"], bins=20)
-axes[0,1].set_title("4 датчика — Gauss–Newton (LM)")
-
-axes[1,0].hist(df5["analytic"], bins=20)
-axes[1,0].set_title("5 датчиков — Аналитика")
-
-axes[1,1].hist(df5["gn"], bins=20)
-axes[1,1].set_title("5 датчиков — Gauss–Newton (LM)")
-
-plt.tight_layout()
-plt.show()
+print("=" * 60)
+print("5 датчиков:")
+print("=" * 60)
+print(df5.describe().loc[['mean', 'std', 'min', 'max']])
