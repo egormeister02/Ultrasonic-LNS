@@ -219,14 +219,51 @@ c = \sqrt{\gamma\,R_{\mathrm{mix}}\,T},
 \end{frame}
 
 \begin{frame}{Ошибка координат}
-
+\textbf{GDOP (Geometric Dilution of Precision)} — коэффициент геометрического ослабления точности.
+\vspace{0.3em}
+При трилатерации в 3D точность определения координат зависит не только от ошибки измерения расстояний до якорей, но и от их геометрического расположения.\\\vspace{0.3em}
 \begin{columns}
   \column{0.5\textwidth}
   \hspace*{1em}
 В силу относительно небольшого расстояния между приемниками на платформе, ошибка в плоскости XY будет значительной.\\
+  \textbf{Проблема:} при $H \ll a$ (малая высота) ошибка по $z$ резко возрастает.
   \column{0.4\textwidth}
   \centering
   \includegraphics[width=\linewidth]{images/trilateration-geometry.png}
+\end{columns}
+\end{frame}
+
+\begin{frame}{GDOP — формула}
+\textbf{Модель: 4 якоря в вершинах квадрата со стороной $a$, объект на высоте $H$.}
+\begin{equation*}
+D = \sqrt{\frac{a^2}{2} + H^2} \quad \text{— расстояние до якоря}
+\end{equation*}
+\begin{block}{}
+\centering
+\boxed{\sigma_{xyz} = \sigma_d \cdot D \cdot \sqrt{\frac{2}{a^2} + \frac{1}{4H^2}}}
+\end{block}
+\vspace{0.3em}
+где:
+\begin{itemize}
+  \item $\sigma_{xyz}$ — СКО положения в 3D
+  \item $\sigma_d$ — ошибка измерения расстояния
+  \item $a$ — сторона квадрата якорей
+  \item $H$ — высота объекта
+\end{itemize}
+\end{frame}
+
+\begin{frame}{GDOP — зависимость от высоты}
+\begin{columns}
+  \column{0.55\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/gdop-vs-anchor-distance.png}
+  \column{0.45\textwidth}
+  \vspace{2em}
+  \begin{itemize}
+    \item При $H \to 0$: GDOP $\to \infty$ (невозможно определить $z$)
+    \item Оптимум: $H \approx a$ (высота равна стороне квадрата)
+    \item При $H \gg a$: ошибка растёт линейно с высотой
+  \end{itemize}
 \end{columns}
 \end{frame}
 
