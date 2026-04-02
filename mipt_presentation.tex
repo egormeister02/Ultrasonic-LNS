@@ -285,6 +285,24 @@ J(\mathbf{p}) = \sum_{i=1}^{N} w_i\bigl(\,\hat r_i - \|\mathbf{p}-\mathbf{a}_i\|
 \end{itemize}
 \end{frame}
 
+
+\begin{frame}{Linear Loss (L1)}
+Альтернативная целевая функция:
+\[
+\boxed{
+\; \min_{\mathbf{p}}\; J_{L1}(\mathbf{p}), \qquad
+J_{L1}(\mathbf{p}) = \sum_{i=1}^{N} w_i\,\bigl|\,\hat r_i - \|\mathbf{p}-\mathbf{a}_i\|\,\bigr|
+}
+\]
+
+\begin{itemize}
+  \item L1 loss — сумма \textbf{абсолютных} невязок.
+  \item Менее чувствительна к \textbf{выбросам}.
+  \item Более робастна в условиях импульсного шума.
+  \item Использует ту же итерационную процедуру Гаусса-Ньютона.
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Аналитический метод}
 Координаты точки \(P\) удовлетворяют системе уравнений трёх сфер:
 \[
