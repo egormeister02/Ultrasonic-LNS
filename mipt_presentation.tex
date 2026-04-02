@@ -182,6 +182,42 @@ I = I_0 e^{-\alpha r}, \text{ где}
 \end{table}
 \end{frame}
 
+\begin{frame}{Скорость звука}
+Скорость звука в воздухе рассчитывается по формуле:
+\begin{equation*}
+\label{eq:speed-of-sound}
+c = \sqrt{\gamma\,R_{\mathrm{mix}}\,T},
+\end{equation*}
+\vspace{0.3em}
+где:
+\begin{itemize}
+  \item $c$ — скорость звука, м/с
+  \item $\gamma = c_{p,\mathrm{mix}}/c_{v,\mathrm{mix}}$ — показатель адиабаты
+  \item $R_{\mathrm{mix}} = R/M_{\mathrm{mix}}$ — удельная газовая постоянная смеси
+  \item $T$ — абсолютная температура, К
+  \item $M_{\mathrm{mix}} = (1-x_v)M_d + x_vM_v$ — молярная масса смеси
+  \item $x_v = p_v/p$ — мольная доля водяного пара
+  \item $p_v = h\,p_{\mathrm{sat}}(T)$ — парциальное давление водяного пара
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Погрешность скорости звука}
+Полная погрешность:
+\begin{equation*}
+\Delta c = \sqrt{\left(\frac{\partial c}{\partial T}\Delta T\right)^2 + \left(\frac{\partial c}{\partial p}\Delta p\right)^2 + \left(\frac{\partial c}{\partial h}\Delta h\right)^2 + \Delta_{\text{мод}}^2}
+\end{equation*}
+\vspace{0.3em}
+При типичных датчиках (BME280):
+\begin{itemize}
+  \item $\Delta T = \pm0.5\ ^\circ\mathrm{C}$ → $\Delta c_T \approx 0.30$ м/с
+  \item $\Delta p = \pm120$ Па → $\Delta c_p \approx 0.06$ м/с
+  \item $\Delta h = \pm3\%$ → $\Delta c_h \approx 0.002$ м/с
+  \item $\Delta_{\text{мод}} \approx 0.31$ м/с
+\end{itemize}
+\vspace{0.3em}
+\textbf{Результат:} $\Delta c \approx 0.43$ м/с ($\pm0.13\%$)
+\end{frame}
+
 \begin{frame}{Ошибка координат}
 
 \begin{columns}
