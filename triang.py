@@ -255,6 +255,11 @@ def run_experiment(sensors, n=20, bias_std=0.05, variance_std=0.1):
 # -------------------------------------------------------
 # КОНФИГУРАЦИИ СЕНСОРОВ
 # -------------------------------------------------------
+sensors3 = np.array([
+    [-1, -1, 0],
+    [-1,  1, 0],
+    [ 1, -1, 0],
+])
 
 sensors4 = np.array([
     [-1, -1, 0],
@@ -282,8 +287,9 @@ sensors5 = np.array([
 # - variance_std: случайный шум измерений (метры)
 
 print("Эксперимент 1: small bias (1%), small variance (0.05m)")
-res4_small = run_experiment(sensors4, n=50, bias_std=0.0012, variance_std=0.002)
-res5_small = run_experiment(sensors5, n=50, bias_std=0.0012, variance_std=0.002)
+res3_small = run_experiment(sensors3, n=500, bias_std=0.0015, variance_std=0.002)
+res4_small = run_experiment(sensors4, n=500, bias_std=0.0015, variance_std=0.002)
+res5_small = run_experiment(sensors5, n=500, bias_std=0.0015, variance_std=0.002)
 
 
 # Функция для вывода результатов
@@ -294,8 +300,10 @@ def print_results(name, df):
     print(df.describe().loc[['mean', 'std', 'min', 'max']])
     print()
 
+df3_small = pd.DataFrame(res3_small, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
 df4_small = pd.DataFrame(res4_small, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
 df5_small = pd.DataFrame(res5_small, columns=["analytic", "lm_huber", "soft_l1", "linear", "bfgs"])
 
+print_results("3 датчика, small bias+var", df3_small)
 print_results("4 датчика, small bias+var", df4_small)
 print_results("5 датчиков, small bias+var", df5_small)

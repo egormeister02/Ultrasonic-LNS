@@ -1,0 +1,312 @@
+\documentclass[xcolor=table,9pt]{beamer}
+\usepackage{hyperref}
+\hypersetup{pdftoolbar=false,pdfwindowui=false,bookmarks=false}
+\usepackage{fontspec}
+\setmainfont{DejaVu Serif}
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+
+\usepackage{amssymb,amsfonts,amsmath,mathtext}
+\usepackage{cite,enumerate,float,indentfirst}
+\usepackage{ragged2e}
+\usepackage{comment}
+\usepackage{epigraph}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{wrapfig}
+\usepackage{subfig}
+\usepackage{derivative}
+\usepackage{setspace}
+\usepackage{pgfplots}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{media9}
+\usepackage{animate}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{fontawesome}
+
+% Настройки из style_example.tex
+\captionsetup[figure]{name=\large{Рис.}}
+\captionsetup[table]{name=\large{Таблица}}
+\setbeamertemplate{caption}{\insertcaption}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{page number in head/foot}[totalframenumber]
+
+% Применяем тему и цветовую схему из style_example.tex
+\usetheme{Copenhagen}
+\usecolortheme{crane}
+
+% Устанавливаем черный цвет текста везде
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{title}{fg=black}
+\setbeamercolor{frametitle}{fg=black}
+\setbeamercolor{structure}{fg=black}
+
+\setbeamercolor{footline}{fg=black}
+
+\setbeamertemplate{footline}{
+\leavevmode%
+\hbox{%
+\begin{beamercolorbox}[wd=.93\paperwidth,ht=2.25ex,dp=1ex,center]{}%
+{\small МНШ лаб. 69 «Разработка теоретических основ и методов практической реализации ЛНС привязной высотной 
+беспилотной платформы»\qquad  Руководитель д.т.н., проф. Вишневский В.М.}
+\end{beamercolorbox}%
+\begin{beamercolorbox}[wd=.09\paperwidth,ht=2.25ex,dp=1ex,right]{}%
+\insertframenumber{} / \inserttotalframenumber \hspace*{2ex}
+\end{beamercolorbox}}%
+\vskip.8ex% % Увеличенный отступ снизу (было 0pt)
+}
+
+% Стандартные отступы для beamer
+\setlength{\leftmargini}{2em}
+\setlength{\leftmarginii}{2em}
+
+\begin{document}
+
+% Титульный слайд в стиле template_example.tex с элементами style_example.tex
+\title{Разработка и исследование систем ультразвуковой навигации привязной беспилотной высотной платформы}
+\author{} %оставляем пустым
+\institute{} %оставляем пустым
+\date{} %оставляем пустым
+\titlegraphic{} %оставляем пустым
+
+\begin{frame}
+\vspace{-4cm}
+\maketitle
+\vspace{-4.cm}
+\begin{tabular}{llr}
+{\large Смирнов Егор Ильич}
+ & $\quad$ & \multirow{3}{*}{\includegraphics[height=3.7cm]{images/My_photo.jpg}}  \\
+ && \\
+ Студент 4 курса ФРКТ МФТИ &   & \\
+ Кафедры ИСС&   & \\
+ \\
+Техник, лаб. 69 &\\ 
+ \end{tabular}
+\end{frame}
+ 
+\section{\textbf{Проблема}}
+\subsection{Введение}
+
+\begin{frame}{Постановка Задачи}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{images/system.png}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\end{frame}
+
+
+\subsection{Формализация}
+\begin{frame}{Задачи и цели исследования}
+
+\begin{columns}
+  \column{0.5\textwidth}
+  \hspace*{1em}
+  Цели исследования:
+  \begin{itemize}
+    \item Определить возможности системы:\\
+    максимальная дальность, предельная точность
+    
+    \item Определить метод вычислений координат
+    \item Разработать прототип ЛНС, провести испытания и собрать данные
+  \end{itemize}
+
+  \column{0.7\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/system.png}
+\end{columns}
+\end{frame}
+
+\section{\textbf{Методология}}
+
+\begin{frame}{Максимальная дальность}
+I) Интенсивность звука в атмосфере затухает экспоненциально 
+\begin{equation*}
+I = I_0 e^{-\alpha r}, \text{ где}
+\end{equation*}
+{\footnotesize
+\begin{align*}
+\alpha &=
+8.686 \, f^2
+\Biggl[
+\frac{1.84 \times 10^{-11}}{p}
+\sqrt{\frac{T}{293.15}}
+\\[0.5em]
+&\quad+
+\left(\frac{T}{293.15}\right)^{-5/2}
+\left(
+\frac{0.01275 e^{-2239.1/T}}{f_{r,\mathrm{O}} + f^2/f_{r,\mathrm{O}}}
++
+\frac{0.1068 e^{-3352/T}}{f_{r,\mathrm{N}} + f^2/f_{r,\mathrm{N}}}
+\right)
+\Biggr],\text{ где}
+\end{align*}
+}
+{\footnotesize
+\begin{itemize}
+\item $r$ - расстояние, м;
+\item $f$ — частота звука, Гц;
+\item $T$ — абсолютная температура, К;
+\item $p$ — атмосферное давление, кПа;
+\item $f_{r,\mathrm{O}}$, $f_{r,\mathrm{N}}$ — частоты релаксации кислорода и азота.
+\end{itemize}
+}
+
+\end{frame}
+
+\begin{frame}{Точность измерений}
+Точность измерений расстояния зависит от разрешения часов приемников и излучателя:
+\begin{equation}
+ \pm d = \frac{c}{2 \Delta t}
+\end{equation}
+
+Приведем характерные значения:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        $\Delta t$ & $d$ \\
+        \hline
+        1 мкс & 0.17 мм  \\
+        10 мкс & 1.7 мм \\
+        100 мкс & 17 мм \\
+        1000 мкс & 17 см \\
+        \hline
+    \end{tabular}
+    \label{tab:example}
+\end{table}
+\end{frame}
+
+\begin{frame}{Ошибка координат}
+
+\begin{columns}
+  \column{0.5\textwidth}
+  \hspace*{1em}
+В силу относительно небольшого расстояния между приемниками на платформе, ошибка в плоскости XY будет значительной.\\
+  \column{0.4\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{images/trilateration-geometry.png}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Вычислительный метод}
+Метод Гаусса-Ньютона
+\[
+\boxed{%
+\; \min_{\mathbf{p}}\; J(\mathbf{p}), \qquad
+J(\mathbf{p}) = \sum_{i=1}^{N} w_i\bigl(\,\hat r_i - \|\mathbf{p}-\mathbf{a}_i\|\,\bigr)^2
+}
+\]
+
+\begin{itemize}
+  \item $\hat r_i$ \;— измеренное расстояние от якоря $i$ до объекта .
+  \item $\mathbf{a}_i$ \;— вектор координат $i$-го якоря.
+  \item $\mathbf{p}$ \;— вектор неизвестных координат объекта.
+  \item $w_i$ \;— вес измерения $i$ (обычно обратный дисперсии).
+  \item $J(\mathbf{p})$ \;— целевая функция суммы взвешенных квадратов невязок.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Аналитический метод}
+Координаты точки \(P\) удовлетворяют системе уравнений трёх сфер:
+\[
+(x - x_i)^2 + (y - y_i)^2 + z^2 = r_i^2, \qquad i = 1,2,3.
+\]
+\begin{align*}
+2(x_2-x_1)x + 2(y_2-y_1)y &= r_1^2 - r_2^2 + x_2^2 - x_1^2 + y_2^2 - y_1^2, \\
+2(x_3-x_1)x + 2(y_3-y_1)y &= r_1^2 - r_3^2 + x_3^2 - x_1^2 + y_3^2 - y_1^2.
+\end{align*}
+
+В матричной форме:
+\[
+A
+\begin{pmatrix} x \\ y \end{pmatrix}
+=
+\begin{pmatrix} b_1 \\ b_2 \end{pmatrix},\begin{pmatrix} x \\ y \end{pmatrix} = A^{-1} \begin{pmatrix} b_1 \\ b_2 \end{pmatrix}.
+\]
+
+\[
+z^2 = r_1^2 - (x - x_1)^2 - (y - y_1)^2,
+z = \pm\sqrt{\,r_1^2 - (x - x_1)^2 - (y - y_1)^2\,}.
+\]
+\end{frame}
+
+\begin{frame}{Аналитический метод}
+
+  \includegraphics[width=\linewidth]{images/anchor-triplet-selection.png}
+
+\end{frame}
+
+\begin{frame}{Сравнение}
+
+\begin{columns}[c]
+
+\column{0.48\textwidth}
+\begin{block}{4 Sensors}
+\centering
+\footnotesize
+\begin{tabular}{lcc}
+\toprule
+Statistic & analytic err & gn err \\
+\midrule
+count & 2000.0000 & 2000.0000 \\
+mean & 0.7494 & 0.7479 \\
+std & 0.3575 & 0.3587 \\
+min & 0.0346 & 0.0253 \\
+25\% & 0.4649 & 0.4627 \\
+50\% & 0.7349 & 0.7333 \\
+75\% & 1.0091 & 1.0090 \\
+max & 1.7822 & 1.7820 \\
+\bottomrule
+\end{tabular}
+\end{block}
+
+\column{0.48\textwidth}
+\begin{block}{5 Sensors}
+\centering
+\footnotesize
+\begin{tabular}{lcc}
+\toprule
+Statistic & analytic err & gn err \\
+\midrule
+count & 2000.0000 & 2000.0000 \\
+mean & 0.6755 & 0.7295 \\
+std & 0.3292 & 0.3615 \\
+min & 0.0399 & 0.0280 \\
+25\% & 0.4230 & 0.4511 \\
+50\% & 0.6519 & 0.7124 \\
+75\% & 0.9082 & 0.9931 \\
+max & 1.7357 & 1.8415 \\
+\bottomrule
+\end{tabular}
+\end{block}
+
+\end{columns}
+
+\end{frame}
+
+\begin{frame}{Дальнейшая работа}
+\centering 
+\begin{itemize}
+  \item Экспериментально определить предельную точность измерения расстояния. Определить распределение ошибки.
+  \item Получить экспериментальные данные о максимальной дальности детектирования УЗ сигнала. Откалибровать формулу.
+  \item Разработать механизм измерения времени распространения УЗ сигнала и механизм синхронизации приемника с источником.
+  \item Разработать метод вычислений координат, дающий наименьшую ошибку. При необходимости, разработать механизм учета искажений, вносимых ветром.
+  \item Собрать рабочую систему локальной навигации и провести испытания. Собрать данные.
+  
+\end{itemize}
+\end{frame}
+
+\section{\textbf{Вопросы}}
+    
+\begin{frame}
+\centering 
+{\bf Спасибо за внимание!}
+\end{frame}
+
+\end{document}
