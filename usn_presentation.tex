@@ -182,6 +182,52 @@ I = I_0 e^{-\alpha r}, \text{ где}
 \end{table}
 \end{frame}
 
+\begin{frame}{Скорость звука}
+\begin{columns}
+  \column{0.5\textwidth}
+  \hspace*{1em}
+  Скорость звука в воздухе:
+  \begin{equation}
+    c \approx 331.3 + 0.606 \cdot T\quad [\text{м/с}]
+  \end{equation}
+  
+  \begin{itemize}
+    \item $c$ — скорость звука, м/с
+    \item $T$ — температура воздуха, °C
+  \end{itemize}
+  
+  \vspace{0.5cm}
+  При $T = 20°C$: $c \approx 343$ м/с
+  
+  \column{0.5\textwidth}
+  \centering
+  \vspace{1cm}
+  \textit{График зависимости скорости звука от температуры}  
+\end{columns}
+\end{frame}
+
+\begin{frame}{Погрешность скорости звука}
+\small
+Погрешность определения скорости звука:
+\begin{equation}
+    \Delta c = \sqrt{\left(\frac{\partial c}{\partial T}\Delta T\right)^2 + \left(\frac{\partial c}{\partial p}\Delta p\right)^2 + \left(\frac{\partial c}{\partial h}\Delta h\right)^2 + \Delta_{\text{мод}}^2}
+\end{equation}
+
+\vspace{0.3cm}
+Частные производные при $T \approx 293$K, $p \approx 101325$Па, $h \approx 0.5$:
+\begin{align}
+    \frac{\partial c}{\partial T} &\approx 0.60\ \text{м/(с·K)} \\
+    \frac{\partial c}{\partial p} &\approx -4.7 \cdot 10^{-4}\ \text{м/(с·Па)} \\
+    \frac{\partial c}{\partial h} &\approx 0.08\ \text{м/с}
+\end{align}
+
+\vspace{0.3cm}
+Погрешности датчиков BME280: $\Delta T = 0.5$K, $\Delta p = 120$Па, $\Delta h = 0.03$, $\Delta_{\text{мод}} = 0.31$м/с
+
+\vspace{0.3cm}
+\textbf{Итоговая погрешность:} $\Delta c \approx 0.43$ м/с ($\sim \pm0.13\%$)
+\end{frame}
+
 \begin{frame}{Ошибка координат}
 
 \begin{columns}
