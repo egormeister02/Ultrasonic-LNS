@@ -7,12 +7,10 @@ from scipy.optimize import least_squares
 
 
 def add_noise(value, noise_width):
-    """Равномерный шум [-w/2, +w/2]"""
     return value + (np.random.rand() - 0.5) * noise_width
 
 
 def analytic_solution_three(P1, P2, P3, r1, r2, r3):
-    """Решение по 3 точкам (триангуляция), возвращает z > 0"""
     A = np.array([
         2 * (P2 - P1)[:2],
         2 * (P3 - P1)[:2]
@@ -50,17 +48,6 @@ def gauss_newton_manual(sensors, distances, x0, max_iter=50, tol=1e-6):
     return x
 
 
-def solve_linear_loss(sensors, distances, x0):
-    res = least_squares(
-        residuals, x0,
-        args=(sensors, distances),
-        method='trf',
-        loss='linear',
-        max_nfev=200
-    )
-    return res.x, res.cost
-
-
 SENSORS_4 = np.array([
     [-1, -1, 0], [-1, 1, 0], [1, -1, 0], [1, 1, 0],
 ])
@@ -92,21 +79,19 @@ def run_trial(sensors, H=20, bias_std=0.05, variance_std=0.1):
     x0 = sols[0] if sols else np.array([0, 0, H])
 
     gn = gauss_newton_manual(sensors, noisy_dist, x0)
-    linear, _ = solve_linear_loss(sensors, noisy_dist, x0)
 
-    return true_pos, analytic, gn, linear
+    return true_pos, analytic, gn
 
 
 def run_experiment(sensors, n=20, bias_std=0.05, variance_std=0.1):
     results = []
     for _ in range(n):
-        true_pos, analytic, gn, linear = run_trial(
+        true_pos, analytic, gn = run_trial(
             sensors, H=20, bias_std=bias_std, variance_std=variance_std
         )
         if analytic is None:
             continue
         err_an = np.linalg.norm(analytic - true_pos)
         err_gn = np.linalg.norm(gn - true_pos)
-        err_lin = np.linalg.norm(linear - true_pos)
-        results.append([err_an, err_gn, err_lin])
+        results.append([err_an, err_gn])
     return np.array(results)
