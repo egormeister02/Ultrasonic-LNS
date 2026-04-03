@@ -54,7 +54,7 @@ def plot_error_vs_variance():
     ax2.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('error_vs_variance.png', dpi=150)
+    plt.savefig('images/error_vs_variance.png', dpi=150)
     print("Сохранено в error_vs_variance.png")
     plt.show()
 
