@@ -301,50 +301,16 @@ z = \pm\sqrt{\,r_1^2 - (x - x_1)^2 - (y - y_1)^2\,}.
 \end{frame}
 
 \begin{frame}{Сравнение}
-
-\begin{columns}[c]
-
-\column{0.48\textwidth}
-\begin{block}{4 Sensors}
-\centering
-\footnotesize
-\begin{tabular}{lcc}
-\toprule
-Statistic & analytic err & gn err \\
-\midrule
-count & 2000.0000 & 2000.0000 \\
-mean & 0.7494 & 0.7479 \\
-std & 0.3575 & 0.3587 \\
-min & 0.0346 & 0.0253 \\
-25\% & 0.4649 & 0.4627 \\
-50\% & 0.7349 & 0.7333 \\
-75\% & 1.0091 & 1.0090 \\
-max & 1.7822 & 1.7820 \\
-\bottomrule
-\end{tabular}
-\end{block}
-
-\column{0.48\textwidth}
-\begin{block}{5 Sensors}
-\centering
-\footnotesize
-\begin{tabular}{lcc}
-\toprule
-Statistic & analytic err & gn err \\
-\midrule
-count & 2000.0000 & 2000.0000 \\
-mean & 0.6755 & 0.7295 \\
-std & 0.3292 & 0.3615 \\
-min & 0.0399 & 0.0280 \\
-25\% & 0.4230 & 0.4511 \\
-50\% & 0.6519 & 0.7124 \\
-75\% & 0.9082 & 0.9931 \\
-max & 1.7357 & 1.8415 \\
-\bottomrule
-\end{tabular}
-\end{block}
-
-\end{columns}
+Зависимость ошибки локализации от дисперсии шума измерений.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.85\linewidth]{../Ultrasonic-LNS/error_vs_variance.png}
+\end{figure}
+\begin{itemize}
+  \item Синий: аналитический метод
+  \item Красный: метод Гаусса-Ньютона
+  \item При 5 якорях итерационный метод точнее при большом шуме
+\end{itemize}
 
 \end{frame}
 
