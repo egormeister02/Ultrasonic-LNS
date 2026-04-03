@@ -57,7 +57,7 @@ SENSORS_5 = np.array([
 ])
 
 
-def run_trial(sensors, H=20, bias_std=0.05, variance_std=0.1):
+def run_trial(sensors, H=25, bias_std=0.05, variance_std=0.1):
     true_pos = np.array([
         add_noise(0, 4), add_noise(0, 4), add_noise(H, 4)
     ])
@@ -83,7 +83,7 @@ def run_trial(sensors, H=20, bias_std=0.05, variance_std=0.1):
     return true_pos, analytic, gn
 
 
-def run_experiment(sensors, n=20, bias_std=0.05, variance_std=0.1):
+def run_experiment(sensors, n=50, bias_std=0.05, variance_std=0.1):
     results = []
     for _ in range(n):
         true_pos, analytic, gn = run_trial(

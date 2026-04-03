@@ -5,7 +5,7 @@ import numpy as np
 from simulation import run_experiment, SENSORS_4, SENSORS_5
 
 VARIANCE_VALUES = [0.002, 0.005, 0.01, 0.05, 0.1]
-N_TRIALS = 50
+N_TRIALS = 500
 BIAS_STD = 0.0012
 
 
