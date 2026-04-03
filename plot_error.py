@@ -19,7 +19,7 @@ def sweep_variance(sensors, variance_values, n_measurements=50, bias_std=0.0012)
 
 
 def plot_error_vs_variance():
-    variance_values = np.linspace(0.001, 0.1, 15)  # 1мм - 10см
+    variance_values = np.linspace(0.001, 0.1, 30)  # 1мм - 10см
     
     print("Расчёт для 4 якорей...")
     results_4 = sweep_variance(SENSORS_4, variance_values)
@@ -59,7 +59,7 @@ def plot_error_vs_variance():
     ax2.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('error_vs_variance.png', dpi=150)
+    plt.savefig('images/error_vs_variance.png', dpi=150)
     print("Сохранено в error_vs_variance.png")
     plt.show()
 
