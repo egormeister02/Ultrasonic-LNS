@@ -1,4 +1,4 @@
-\documentclass[xcolor=table,10pt]{beamer}
+\documentclass[xcolor=table,9pt]{beamer}
 \usepackage{hyperref}
 \hypersetup{pdftoolbar=false,pdfwindowui=false,bookmarks=false}
 \usepackage{fontspec}
@@ -49,8 +49,6 @@
 \leavevmode%
 \hbox{%
 \begin{beamercolorbox}[wd=.93\paperwidth,ht=2.25ex,dp=1ex,center]{}%
-{\small МНШ лаб. 69 «Разработка теоретических основ и методов практической реализации ЛНС привязной высотной 
-беспилотной платформы»\qquad  Руководитель д.т.н., проф. Вишневский В.М.}
 \end{beamercolorbox}%
 \begin{beamercolorbox}[wd=.09\paperwidth,ht=2.25ex,dp=1ex,right]{}%
 \insertframenumber{} / \inserttotalframenumber \hspace*{2ex}
@@ -82,6 +80,8 @@
  Студент 4 курса ФРКТ МФТИ &   & \\
  Кафедры ИСС&   & \\
  \\
+Институт проблем управления \\
+им. В.А.Трапезникова РАН \\
 Техник, лаб. 69 &\\ 
  \end{tabular}
 \end{frame}
@@ -111,8 +111,7 @@
     \item Определить возможности системы:\\
     максимальная дальность, предельная точность
     
-    \item Определить метод вычислений координат
-    \item Разработать прототип ЛНС, провести испытания и собрать данные
+    \item Определить оптимальный метод вычислений координат
   \end{itemize}
 
   \column{0.7\textwidth}
@@ -158,6 +157,14 @@ I = I_0 e^{-\alpha r}, \text{ где}
 
 \end{frame}
 
+\begin{frame}{Разделение ошибки}
+    Разделим ошибку на состовляющие: Систематическую и случайную.
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.8\linewidth]{./images/bias-variance.png}
+    \end{figure}
+    \end{frame}
+
 \begin{frame}{Точность измерений}
 Точность измерений расстояния зависит от разрешения часов приемников и излучателя:
 \begin{equation}
@@ -183,53 +190,44 @@ I = I_0 e^{-\alpha r}, \text{ где}
 \end{frame}
 
 \begin{frame}{Скорость звука}
-\begin{columns}
-  \column{0.5\textwidth}
-  \hspace*{1em}
-  Скорость звука в воздухе:
-  \begin{equation}
-    c \approx 331.3 + 0.606 \cdot T\quad [\text{м/с}]
-  \end{equation}
-  
-  \begin{itemize}
-    \item $c$ — скорость звука, м/с
-    \item $T$ — температура воздуха, °C
-  \end{itemize}
-  
-  \vspace{0.5cm}
-  При $T = 20°C$: $c \approx 343$ м/с
-  
-  \column{0.5\textwidth}
-  \centering
-  \vspace{1cm}
-  \textit{График зависимости скорости звука от температуры}  
-\end{columns}
+Скорость звука в воздухе рассчитывается по формуле:
+\begin{equation*}
+\label{eq:speed-of-sound}
+c = \sqrt{\gamma\,R_{\mathrm{mix}}\,T},
+\end{equation*}
+\vspace{0.3em}
+где:
+\begin{itemize}
+  \item $c$ — скорость звука, м/с
+  \item $\gamma = c_{p,\mathrm{mix}}/c_{v,\mathrm{mix}}$ — показатель адиабаты
+  \item $R_{\mathrm{mix}} = R/M_{\mathrm{mix}}$ — удельная газовая постоянная смеси
+  \item $T$ — абсолютная температура, К
+  \item $M_{\mathrm{mix}} = (1-x_v)M_d + x_vM_v$ — молярная масса смеси
+  \item $x_v = p_v/p$ — мольная доля водяного пара
+  \item $p_v = h\,p_{\mathrm{sat}}(T)$ — парциальное давление водяного пара
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Погрешность скорости звука}
-\small
-Погрешность определения скорости звука:
-\begin{equation}
-    \Delta c = \sqrt{\left(\frac{\partial c}{\partial T}\Delta T\right)^2 + \left(\frac{\partial c}{\partial p}\Delta p\right)^2 + \left(\frac{\partial c}{\partial h}\Delta h\right)^2 + \Delta_{\text{мод}}^2}
-\end{equation}
-
-\vspace{0.3cm}
-Частные производные при $T \approx 293$K, $p \approx 101325$Па, $h \approx 0.5$:
-\begin{align}
-    \frac{\partial c}{\partial T} &\approx 0.60\ \text{м/(с·K)} \\
-    \frac{\partial c}{\partial p} &\approx -4.7 \cdot 10^{-4}\ \text{м/(с·Па)} \\
-    \frac{\partial c}{\partial h} &\approx 0.08\ \text{м/с}
-\end{align}
-
-\vspace{0.3cm}
-Погрешности датчиков BME280: $\Delta T = 0.5$K, $\Delta p = 120$Па, $\Delta h = 0.03$, $\Delta_{\text{мод}} = 0.31$м/с
-
-\vspace{0.3cm}
-\textbf{Итоговая погрешность:} $\Delta c \approx 0.43$ м/с ($\sim \pm0.13\%$)
+Полная погрешность:
+\begin{equation*}
+\Delta c = \sqrt{\left(\frac{\partial c}{\partial T}\Delta T\right)^2 + \left(\frac{\partial c}{\partial p}\Delta p\right)^2 + \left(\frac{\partial c}{\partial h}\Delta h\right)^2 + \Delta_{\text{мод}}^2}
+\end{equation*}
+\vspace{0.3em}
+При типичных датчиках:
+\begin{itemize}
+  \item $\Delta T = \pm0.5\ ^\circ\mathrm{C}$ → $\Delta c_T \approx 0.30$ м/с
+  \item $\Delta p = \pm120$ Па → $\Delta c_p \approx 0.06$ м/с
+  \item $\Delta h = \pm3\%$ → $\Delta c_h \approx 0.002$ м/с
+  \item $\Delta_{\text{мод}} \approx 0.31$ м/с
+\end{itemize}
+\vspace{0.3em}
+\textbf{Результат:} $\Delta c \approx 0.43$ м/с ($\pm0.13\%$)
 \end{frame}
 
 \begin{frame}{Ошибка координат}
-
+\textbf{GDOP (Geometric Dilution of Precision)} — коэффициент геометрического ослабления точности.
+\vspace{0.3em}
 \begin{columns}
   \column{0.5\textwidth}
   \hspace*{1em}
@@ -238,6 +236,29 @@ I = I_0 e^{-\alpha r}, \text{ где}
   \centering
   \includegraphics[width=\linewidth]{images/trilateration-geometry.png}
 \end{columns}
+\end{frame}
+
+\begin{frame}{GDOP — формула}
+\textbf{Модель: 4 якоря в вершинах квадрата со стороной $a$, объект на высоте $H$.}
+\begin{equation*}
+D = \sqrt{\frac{a^2}{2} + H^2} \quad \text{— расстояние до якоря}
+\end{equation*}
+\begin{block}{}
+\centering
+\boxed{\sigma_{xyz} = \sigma_d \cdot D \cdot \sqrt{\frac{2}{a^2} + \frac{1}{4H^2}}}
+\end{block}
+\vspace{0.3em}
+где:
+\begin{itemize}
+  \item $\sigma_{xyz}$ — СКО положения в 3D
+  \item $\sigma_d$ — ошибка измерения расстояния
+  \item $a$ — сторона квадрата якорей
+  \item $H$ — высота объекта
+\end{itemize}
+\end{frame}
+
+\begin{frame}{GDOP — зависимость от геометрии якорей}
+\includegraphics[width=\linewidth]{images/gdop-vs-anchor-distance.png}
 \end{frame}
 
 \begin{frame}{Вычислительный метод}
@@ -289,64 +310,56 @@ z = \pm\sqrt{\,r_1^2 - (x - x_1)^2 - (y - y_1)^2\,}.
 \end{frame}
 
 \begin{frame}{Сравнение}
-
-\begin{columns}[c]
-
-\column{0.48\textwidth}
-\begin{block}{4 Sensors}
-\centering
-\footnotesize
-\begin{tabular}{lcc}
-\toprule
-Statistic & analytic err & gn err \\
-\midrule
-count & 2000.0000 & 2000.0000 \\
-mean & 0.7494 & 0.7479 \\
-std & 0.3575 & 0.3587 \\
-min & 0.0346 & 0.0253 \\
-25\% & 0.4649 & 0.4627 \\
-50\% & 0.7349 & 0.7333 \\
-75\% & 1.0091 & 1.0090 \\
-max & 1.7822 & 1.7820 \\
-\bottomrule
-\end{tabular}
-\end{block}
-
-\column{0.48\textwidth}
-\begin{block}{5 Sensors}
-\centering
-\footnotesize
-\begin{tabular}{lcc}
-\toprule
-Statistic & analytic err & gn err \\
-\midrule
-count & 2000.0000 & 2000.0000 \\
-mean & 0.6755 & 0.7295 \\
-std & 0.3292 & 0.3615 \\
-min & 0.0399 & 0.0280 \\
-25\% & 0.4230 & 0.4511 \\
-50\% & 0.6519 & 0.7124 \\
-75\% & 0.9082 & 0.9931 \\
-max & 1.7357 & 1.8415 \\
-\bottomrule
-\end{tabular}
-\end{block}
-
-\end{columns}
+Зависимость ошибки локализации от дисперсии шума измерений.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{./images/error_vs_variance.png}
+\end{figure}
 
 \end{frame}
 
-\begin{frame}{Дальнейшая работа}
-\centering 
-\begin{itemize}
-  \item Экспериментально определить предельную точность измерения расстояния. Определить распределение ошибки.
-  \item Получить экспериментальные данные о максимальной дальности детектирования УЗ сигнала. Откалибровать формулу.
-  \item Разработать механизм измерения времени распространения УЗ сигнала и механизм синхронизации приемника с источником.
-  \item Разработать метод вычислений координат, дающий наименьшую ошибку. При необходимости, разработать механизм учета искажений, вносимых ветром.
-  \item Собрать рабочую систему локальной навигации и провести испытания. Собрать данные.
-  
-\end{itemize}
+\begin{frame}{Таблица погрешности}
+\begin{table}[h!]
+    \centering
+    \caption{Аналитический метод, $H=25$м, $n=1000$}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        $\sigma$, м & 4 якоря, см & 5 якорей, см \\
+        \hline
+        0.002 & 3.44 & 15.51 \\
+        \hline
+        0.005 & 6.98 & 16.56 \\
+        \hline
+        0.01 & 12.78 & 18.87 \\
+        \hline
+        0.05 & 62.52 & 57.98 \\
+        \hline
+        0.1 & 128.21 & 116.31 \\
+        \hline
+    \end{tabular}
+\end{table}
+\begin{table}[h!]
+    \centering
+    \caption{Метод Гаусса-Ньютона, $H=25$м, $n=1000$}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        $\sigma$, м & 4 якоря, см & 5 якорей, см \\
+        \hline
+        0.002 & 3.44 & 3.43 \\
+        \hline
+        0.005 & 6.83 & 6.69 \\
+        \hline
+        0.01 & 12.96 & 12.59 \\
+        \hline
+        0.05 & 62.68 & 62.58 \\
+        \hline
+        0.1 & 128.78 & 125.42 \\
+        \hline
+    \end{tabular}
+\end{table}
 \end{frame}
+
+
 
 \section{\textbf{Вопросы}}
     
