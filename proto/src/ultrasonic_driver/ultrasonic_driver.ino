@@ -36,37 +36,36 @@ void setup() {
   // ADC на потенциометр
   pinMode(POT_PIN, INPUT_ANALOG);
 
-  // === Настройка PWM на TIM4 ===
-  // Канал 1: PB6 (IN1)
-  // Канал 2: PB7 (IN2) - инвертированный
-  
-  pinmap_pinout(digitalPinToPinName(IN1_PIN), PinMap_PWM);
-  pinmap_pinout(digitalPinToPinName(IN2_PIN), PinMap_PWM);
+  // === Настройка пинов как PWM ===
+  // PB6 -> TIM4 CH1
+  // PB7 -> TIM4 CH2
+  pinMode(IN1_PIN, PWM);
+  pinMode(IN2_PIN, PWM);
 
+  // === Настройка таймера TIM4 ===
+  // Частота тактирования APB1 = 84 MHz
+  // Prescaler = 84 -> 1 MHz тиков
+  pwmtimer.setPrescaleFactor(84);
+  
   // Начальная частота - середина диапазона
   uint32_t initialFreq = (MIN_FREQ + MAX_FREQ) / 2;
   
-  // Prescaler: 84 MHz / 84 = 1 MHz
-  pwmtimer.setPrescaleFactor(84);
-  
-  // Период для нужной частоты
+  // Период для нужной частоты (в микросекундах)
+  // period = 1000000 / freq
   pwmtimer.setOverflow(1000000 / initialFreq, MICROSEC_FORMAT);
   
-  // Канал 1: 50% скважность
-  pwmtimer.setCaptureCompare(1, 50, PERCENT_COMPARE_FORMAT);
+  // Режим PWM для каналов
+  pwmtimer.setMode(1, TIM_PWM, IN1_PIN);  // CH1 -> PB6
+  pwmtimer.setMode(2, TIM_PWM, IN2_PIN);  // CH2 -> PB7
   
-  // Канал 2: 50% скважность (инвертированная фаза)
-  // Для инверсии используем другой режим
-  pwmtimer.setCaptureCompare(2, 50, PERCENT_COMPARE_FORMAT);
+  // Скважность 50%
+  pwmtimer.setCompare1(50);   // PB6: 50%
+  pwmtimer.setCompare2(50);   // PB7: 50% (можно сделать 50% - инверсия софтовая)
   
-  // Включаем режим Complementary (инвертированный выход)
-  // TIM4 CH1 -> PB6, TIM4 CH1N -> PB6 (альтернативная функция)
-  // Но на F401 CCU6 PB7 это TIM4 CH2, не CH1N
-  
-  // Альтернатива: программная инверсия через toggle mode
-  // Или просто инвертируем фазу в коде
-  
+  // Запуск таймера
   pwmtimer.resume();
+  
+  Serial.println("PWM запущен");
 }
 
 void loop() {
