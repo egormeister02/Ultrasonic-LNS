@@ -36,11 +36,9 @@ void setup() {
   // ADC на потенциометр
   pinMode(POT_PIN, INPUT_ANALOG);
 
-  // === Настройка пинов как PWM ===
-  // PB6 -> TIM4 CH1
-  // PB7 -> TIM4 CH2
-  pinMode(IN1_PIN, PWM);
-  pinMode(IN2_PIN, PWM);
+  // === Настройка пинов как альтернативная функция для PWM ===
+  pinMode(IN1_PIN, OUTPUT_AF);
+  pinMode(IN2_PIN, OUTPUT_AF);
 
   // === Настройка таймера TIM4 ===
   // Частота тактирования APB1 = 84 MHz
@@ -51,16 +49,15 @@ void setup() {
   uint32_t initialFreq = (MIN_FREQ + MAX_FREQ) / 2;
   
   // Период для нужной частоты (в микросекундах)
-  // period = 1000000 / freq
   pwmtimer.setOverflow(1000000 / initialFreq, MICROSEC_FORMAT);
   
   // Режим PWM для каналов
-  pwmtimer.setMode(1, TIM_PWM, IN1_PIN);  // CH1 -> PB6
-  pwmtimer.setMode(2, TIM_PWM, IN2_PIN);  // CH2 -> PB7
+  pwmtimer.setMode(1, PWM, IN1_PIN);   // CH1 -> PB6
+  pwmtimer.setMode(2, PWM, IN2_PIN);   // CH2 -> PB7
   
   // Скважность 50%
-  pwmtimer.setCompare1(50);   // PB6: 50%
-  pwmtimer.setCompare2(50);   // PB7: 50% (можно сделать 50% - инверсия софтовая)
+  pwmtimer.setCaptureCompare(1, 50, PERCENT_COMPARE_FORMAT);  // PB6: 50%
+  pwmtimer.setCaptureCompare(2, 50, PERCENT_COMPARE_FORMAT);  // PB7: 50%
   
   // Запуск таймера
   pwmtimer.resume();
