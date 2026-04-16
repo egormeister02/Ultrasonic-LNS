@@ -1,11 +1,14 @@
-\documentclass[a4paper,12pt]{article} % Класс документа
+\documentclass[a4paper,11pt]{article} % Класс документа
 
 % Подключаем полезные пакеты
 \usepackage{booktabs}  % для \toprule, \midrule, \bottomrule
 \usepackage{caption}   % улучшает внешний вид подписей
-\usepackage{geometry}  % необязательно, просто удобнее
-\geometry{margin=2cm}
+\usepackage{geometry}          % Настройка полей
+\geometry{margin=2.5cm}
+\usepackage{microtype}          % Улучшенный перенос слов
 \usepackage{fontspec}         % Поддержка OpenType шрифтов
+\usepackage[english,russian]{babel}  % Переносы для русского
+\babelprovide[hyphenrules=russian]{russian}
 \setmainfont{DejaVu Serif}
 \setsansfont{DejaVu Sans}
 \setmonofont{DejaVu Sans Mono}
