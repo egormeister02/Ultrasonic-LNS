@@ -229,12 +229,20 @@ p_{sat} = p_r \cdot 10^{-6.8346 \cdot \left( \frac{T_{01}}{T} \right)^{1.261} + 
 Выражения~\eqref{eq:speed-of-sound-humid-air} основаны на работе~\cite{cramer1993}.
 Здесь $p_{\mathrm{sat}}(T)$ вычисляется по формуле Тетенса, применимой в диапазоне $-20\ldots 50~^\circ\mathrm{C}$.
 
-В инженерных оценках при околонормальных условиях теплоёмкости компонент смеси можно считать почти постоянными
-(относительная ошибка $<0.1\%$):
-\begin{equation}
+После подстановки всех промежуточных величин в~\eqref{eq:speed-of-sound-humid-air} получается явное
+выражение $c$ как функции трёх измеряемых параметров $(T, p, h)$:
+\begin{equation}\label{eq:speed-of-sound-explicit}
+  c(T,p,h) = \sqrt{\frac{c_{p,\mathrm{mix}}(T,p,h)\,R\,T}
+                        {M_{\mathrm{mix}}(T,p,h)\bigl[c_{p,\mathrm{mix}}(T,p,h) - R/M_{\mathrm{mix}}(T,p,h)\bigr]}},
+\end{equation}
+где мольная доля пара и производные от неё величины имеют вид
+\begin{align*}
+  x_v(T,p,h)            &= \frac{h\,p_{\mathrm{sat}}(T)}{p}, \\
+  M_{\mathrm{mix}}(T,p,h) &= M_d + x_v(T,p,h)\,(M_v - M_d), \\
+  c_{p,\mathrm{mix}}(T,p,h) &= c_{p,d} + x_v(T,p,h)\,(c_{p,v} - c_{p,d}).
   c_{p,d} \approx 1005~\mathrm{J/(kg\cdot K)},\qquad
   c_{p,v} \approx 1850~\mathrm{J/(kg\cdot K)}.
-\end{equation}
+\end{align*}
 
 Обозначения, используемые в \eqref{eq:speed-of-sound-humid-air}, приведены в табл.~\ref{tab:speed-of-sound-notation}.
 
