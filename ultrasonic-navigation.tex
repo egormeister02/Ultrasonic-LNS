@@ -708,6 +708,208 @@ J(\mathbf{p}) = \sum_{i=1}^{N} w_i\bigl(\,\hat r_i - \|\mathbf{p}-\mathbf{a}_i\|
 Аналитический метод вычислительно проще метода Гаусса-Ньютона, и оптимально будет использовать именно его,
 на конфигурации из 4 якорей.
 
+\section{Реализация}
+
+\subsection{Схема обработки сигнала якоря}
+
+Цепь обработки сигнала каждого якоря включает четыре последовательных блока
+(рис.~\ref{fig:anchor-block}): инструментальный усилитель~INA128P, полосовой фильтр
+на~TL072CN (два каскада), детектор огибающей и компаратор~LM358P.
+
+Пьезоприёмник является механическим резонатором: любое акустическое воздействие ---
+хлопок, удар, вибрация --- преобразуется в затухающие колебания на той же частоте~25~кГц,
+что и полезный сигнал. Поэтому полосовой фильтр не позволяет отличить полезный сигнал
+от механического шума. Надёжное распознавание обеспечивается временным кодированием:
+передатчик излучает пачки длительностью~0{,}5--2~мс, а микроконтроллер идентифицирует
+сигнал по временному шаблону. Фильтр выполняет вспомогательную роль: подавляет
+электрические помехи в схеме (наводки питания, ВЧ-мусор), что позволяет поднять
+коэффициент усиления без перегрузки.
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[
+  blk/.style={draw, thick, rectangle, minimum width=2.2cm, minimum height=1.1cm,
+               align=center, font=\small, inner sep=3pt},
+  arr/.style={thick, ->}
+]
+\node[blk] (ina) at (0,   0) {INA128P\\[-2pt]{\scriptsize $G{\approx}100$}};
+\node[blk] (oua) at (3.4, 0) {ОУ-A\\[-2pt]{\scriptsize ФВЧ\;$\times11$}};
+\node[blk] (oub) at (6.8, 0) {ОУ-B\\[-2pt]{\scriptsize ФНЧ\;$\times5{,}7$}};
+\node[blk] (det) at (10.2,0) {Детектор\\[-2pt]{\scriptsize $\tau=1$\,мс}};
+\node[blk] (cmp) at (13.6,0) {LM358P\\[-2pt]{\scriptsize компаратор}};
+\draw[arr] (-2.0,0) -- (ina) node[pos=0, left, font=\small] {УЗ};
+\draw[arr] (ina)    -- (oua);
+\draw[arr] (oua)    -- (oub);
+\draw[arr] (oub)    -- (det) node[midway, above, font=\scriptsize] {$C_3$};
+\draw[arr] (det)    -- (cmp);
+\draw[arr] (cmp)    -- ++(2.0,0) node[right, font=\small] {МК};
+\node[font=\scriptsize, below=4pt] at (ina) {$\pm12$\,В};
+\node[font=\scriptsize, below=4pt] at (oua) {$f_c\!\approx\!1{,}6$\,кГц};
+\node[font=\scriptsize, below=4pt] at (oub) {$f_c\!\approx\!16$\,кГц};
+\node[font=\scriptsize, below=4pt] at (cmp) {$+5$\,В};
+\end{tikzpicture}
+\caption{Структурная схема цепи обработки сигнала якоря}
+\label{fig:anchor-block}
+\end{figure}
+
+\subsubsection{Предусилитель --- INA128P}
+
+На первом каскаде применяется инструментальный усилитель INA128P с дифференциальным входом.
+Высокое выходное сопротивление пьезоприёмника обусловливает подключение резисторов
+$1$~МОм от каждого входа на землю для задания тока смещения; конденсатор~100~пФ между
+входами срезает высокочастотные наводки на входных проводах.
+Коэффициент усиления задаётся резистором $R_g$ между выводами RG (pins~1 и~8):
+\[
+G = 1 + \frac{50\,\text{кОм}}{R_g}.
+\]
+При $R_g = 499$~Ом получаем $G \approx 100$. Питание~--- $\pm12$~В, вывод REF подключён
+к аналоговой земле.
+
+\begin{figure}[h!]
+\centering
+\begin{circuitikz}[american, scale=0.9, transform shape]
+  \draw[thick] (0,-1.1) rectangle (3.8, 1.1);
+  \node[font=\small]      at (1.9,  0.45) {INA128P};
+  \node[font=\scriptsize] at (1.9, -0.15) {$G = 1+50\text{к}/R_g$};
+  \draw (0,  0.6) -- ++(-1.2,0) coordinate (INP) -- ++(-1.6,0) node[left] {УЗ$^+$};
+  \draw (0, -0.6) -- ++(-1.2,0) coordinate (INM) -- ++(-1.6,0) node[left] {УЗ$^-$};
+  \draw (INP) to[R, l={\scriptsize $1$\,МОм}, *-] ++(0,-3.2) node[ground]{};
+  \draw (INM) to[R, l_={\scriptsize $1$\,МОм}, *-] ++(0,-2.2) node[ground]{};
+  \draw (INP) to[C, l_={\scriptsize $100$\,пФ}, *-*] (INM);
+  \draw (0.7,-1.1) -- ++(0,-0.7) coordinate (RG1);
+  \draw (3.1,-1.1) -- ++(0,-0.7) coordinate (RG8);
+  \draw (RG1) to[R, l={\scriptsize $R_g{=}499$\,Ом}] (RG8);
+  \node[font=\tiny, below=1pt] at (0.7,-1.1) {1};
+  \node[font=\tiny, below=1pt] at (3.1,-1.1) {8};
+  \draw (3.8, 0) -- ++(1.3,0) node[right] {ВЫХ};
+\end{circuitikz}
+\caption{Схема предусилителя INA128P}
+\label{fig:ina128}
+\end{figure}
+
+\subsubsection{Полосовой фильтр --- TL072CN}
+
+Оба операционника одной микросхемы TL072CN включены последовательно.
+
+\textbf{ОУ-A (ФВЧ + усиление, pins~1/2/3).}
+Сигнал с выхода INA128P поступает через конденсатор $C_1 = 1$~нФ на неинвертирующий вход.
+Резистор $R_1 = 100$~кОм между входом и землёй задаёт нижнюю частоту среза:
+\[
+f_{\text{ВЧ}} = \frac{1}{2\pi R_1 C_1} \approx 1{,}6\text{ кГц.}
+\]
+Обратная связь: $R_{f1} = 47$~кОм, $R_2 = 4{,}7$~кОм.
+Коэффициент усиления $K_A = 1 + R_{f1}/R_2 \approx 11$.
+
+\textbf{ОУ-B (ФНЧ + усиление, pins~5/6/7).}
+Сигнал поступает через $R_3 = 10$~кОм. В цепи обратной связи параллельно
+$R_{f2} = 47$~кОм включён $C_2 = 1$~нФ, образующий ФНЧ с частотой среза:
+\[
+f_{\text{НЧ}} = \frac{1}{2\pi R_3 C_2} \approx 16\text{ кГц.}
+\]
+Резистор $R_4 = 10$~кОм задаёт усиление $K_B \approx 5{,}7$.
+Суммарное усиление: $K_A \cdot K_B \approx 63$.
+
+\begin{figure}[h!]
+\centering
+\begin{minipage}[t]{0.48\textwidth}
+  \centering
+  \begin{circuitikz}[american, scale=0.8, transform shape]
+    \coordinate (FT) at (0, 2.3);
+    \draw (3.8, 0) node[op amp] (A) {};
+    \draw (A.+) to[C, l={\scriptsize $C_1{=}1$н}] ++(-2.5,0) node[left] {ВХ};
+    \draw (A.+) to[R, l_={\scriptsize $R_1{=}100$к}, *-] ++(0,-2.3) node[ground]{};
+    \draw (A.-) to[R, l_={\scriptsize $R_2{=}4{,}7$к}]   ++(0,-1.8) node[ground]{};
+    \draw (A.-) -- (A.- |- FT) to[R, l={\scriptsize $R_{f1}{=}47$к}]
+          (A.out |- FT) -- (A.out);
+    \draw (A.out) -- ++(0.8,0) node[right] {ВЫХ};
+  \end{circuitikz}
+  \par\smallskip
+  (а)~ОУ-A: ФВЧ + $K_A{\approx}11$
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \centering
+  \begin{circuitikz}[american, scale=0.8, transform shape]
+    \coordinate (FT)  at (0, 2.3);
+    \coordinate (FT2) at (0, 3.3);
+    \draw (3.8, 0) node[op amp] (B) {};
+    \draw (B.+) to[R, l={\scriptsize $R_3{=}10$к}] ++(-2.5,0) node[left] {ВХ};
+    \draw (B.-) to[R, l_={\scriptsize $R_4{=}10$к}]  ++(0,-1.8) node[ground]{};
+    \draw (B.-) -- (B.- |- FT)  to[R, l={\scriptsize $R_{f2}{=}47$к}]
+          (B.out |- FT)  -- (B.out);
+    \draw (B.-) -- (B.- |- FT2) to[C, l={\scriptsize $C_2{=}1$н}]
+          (B.out |- FT2) -- (B.out);
+    \draw (B.out) -- ++(0.8,0) node[right] {ВЫХ};
+  \end{circuitikz}
+  \par\smallskip
+  (б)~ОУ-B: ФНЧ + $K_B{\approx}5{,}7$
+\end{minipage}
+\caption{Каскады полосового фильтра TL072CN ($\pm12$\,В)}
+\label{fig:tl072}
+\end{figure}
+
+\subsubsection{Детектор огибающей}
+
+После фильтра переменный сигнал 25~кГц преобразуется в уровень постоянного тока.
+Разделительный конденсатор $C_3 = 100$~нФ развязывает по постоянному току цепи
+усилителя ($\pm12$~В) и компаратора ($+5$~В).
+Детектор огибающей: диод 1N4148, конденсатор $C_4 = 10$~нФ и резистор $R_5 = 100$~кОм
+на землю; постоянная времени:
+\[
+\tau = R_5 C_4 = 10^5 \cdot 10^{-8} = 1\text{ мс,}
+\]
+что соответствует длительности одного бита сигнала.
+
+\subsubsection{Компаратор --- LM358P}
+
+Компаратор LM358P питается от $+5$~В совместно с микроконтроллером, что обеспечивает
+совместимость логических уровней без дополнительной защиты.
+Порог срабатывания задаётся делителем напряжения $R_6 = 100$~кОм и $R_7 = 3{,}3$~кОм:
+\[
+V_{\text{ref}} = 5\,\text{В} \cdot \frac{R_7}{R_6 + R_7}
+= 5 \cdot \frac{3{,}3}{103{,}3} \approx 0{,}16\text{ В.}
+\]
+Гистерезис~--- резистор $R_8 = 1$~МОм от выхода на неинвертирующий вход --- создаёт
+«мёртвую зону» около 30~мВ и исключает дребезг при переключении.
+
+\begin{figure}[h!]
+\centering
+\begin{minipage}[t]{0.44\textwidth}
+  \centering
+  \begin{circuitikz}[american, scale=0.85, transform shape]
+    \draw (0,0) to[C, l={\scriptsize $C_3{=}100$н}, o-] ++(2,0) coordinate (DA);
+    \draw (DA) to[D, l={\scriptsize 1N4148}] ++(2,0) coordinate (DN);
+    \draw (DN) -- ++(0.8,0) coordinate (DO);
+    \draw (DN) to[C, l_={\scriptsize $C_4{=}10$н}, *-] ++(0,-2) node[ground]{};
+    \draw (DO) to[R, l={\scriptsize $R_5{=}100$к}, *-] ++(0,-2) node[ground]{};
+    \draw (DO) -- ++(0.8,0) node[right] {ВЫХ};
+    \node[left] at (0,0) {ВХ};
+  \end{circuitikz}
+  \par\smallskip
+  (а)~Детектор огибающей
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.52\textwidth}
+  \centering
+  \begin{circuitikz}[american, scale=0.85, transform shape]
+    \draw (4,0) node[op amp] (C) {};
+    \draw (C.+) -- ++(-2,0) node[left] {ВХ};
+    \draw (C.-) -- ++(-0.7,0) coordinate (VR);
+    \draw (VR) to[R, l_={\scriptsize $R_6{=}100$к}, *-o] ++(0, 2.2)
+          node[above] {\scriptsize $+5$\,В};
+    \draw (VR) to[R, l={\scriptsize $R_7{=}3{,}3$к}] ++(0,-2.0) node[ground]{};
+    \draw (C.out) -- ++(0.5,0) coordinate (CO);
+    \draw (CO) -- ++(0,-2.4)
+          to[R, l_={\scriptsize $R_8{=}1$М}] (C.+ |- 0,-2.4) -- (C.+);
+    \draw (CO) -- ++(0.8,0) node[right] {МК};
+  \end{circuitikz}
+  \par\smallskip
+  (б)~Компаратор LM358P ($+5$\,В)
+\end{minipage}
+\caption{Детектор огибающей и компаратор}
+\label{fig:det-cmp}
+\end{figure}
+\FloatBarrier
 
 \begin{thebibliography}{99}
 
