@@ -19,6 +19,33 @@
 
 HardwareTimer pwmTimer(TIM4);
 
+// Enable or silence both H-bridge channels.
+// Silence: CH1(PWM1)=0% → IN1 LOW, CH2(PWM2)=100% → IN2 LOW (coast mode).
+static void setBurst(bool active) {
+  if (active) {
+    pwmTimer.setCaptureCompare(1, 50,  PERCENT_COMPARE_FORMAT);
+    pwmTimer.setCaptureCompare(2, 50,  PERCENT_COMPARE_FORMAT);
+  } else {
+    pwmTimer.setCaptureCompare(1,   0, PERCENT_COMPARE_FORMAT);
+    pwmTimer.setCaptureCompare(2, 100, PERCENT_COMPARE_FORMAT);
+  }
+}
+
+// Transmit `value` (MSB first, `numBits` bits) using OOK modulation.
+// Each bit occupies `bitDurationMs` milliseconds; '1' = burst, '0' = silence.
+void transmitCode(uint32_t freq, uint32_t bitDurationMs, uint32_t value, uint8_t numBits) {
+  pwmTimer.setOverflow(freq, HERTZ_FORMAT);
+  setBurst(false);
+
+  for (int8_t i = numBits - 1; i >= 0; i--) {
+    bool bit = (value >> i) & 1;
+    setBurst(bit);
+    delay(bitDurationMs);
+  }
+
+  setBurst(false);
+}
+
 void setup() {
   Serial.begin(115200);
   delay(500);
