@@ -1,0 +1,5 @@
+{
+    "idf.currentSetup": "/home/egor/.espressif/v6.0.1/esp-idf",
+    "idf.flashType": "UART",
+    "idf.port": "/dev/ttyACM0"
+}

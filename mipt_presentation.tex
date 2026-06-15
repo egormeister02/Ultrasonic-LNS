@@ -361,6 +361,93 @@ z = \pm\sqrt{\,r_1^2 - (x - x_1)^2 - (y - y_1)^2\,}.
 
 
 
+\section{\textbf{Реализация}}
+
+\begin{frame}{Узел БПЛА — передающая часть}
+\begin{figure}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  blk/.style={draw, thick, rectangle, minimum width=2.6cm, minimum height=1.1cm,
+              align=center, font=\small, inner sep=3pt},
+  arr/.style={thick, ->}
+]
+\node[blk] (mcu)  at (0,    1.4) {ESP32\\[-2pt]{\scriptsize $A$, $B$: 25\,кГц + OOK}};
+\node[blk] (rf)   at (0,   -1.4) {DWM1000\\[-2pt]{\scriptsize Delayed TX}};
+\node[blk] (sw)   at (4.8,  0)   {SN74HC4066\\[-2pt]{\scriptsize 2 ключа: $A$, $B$}};
+\node[blk] (drv)  at (8.8,  0)   {TC4427A\\[-2pt]{\scriptsize драйвер (мост)}};
+\node[blk] (pz)   at (12.4, 0)   {MA40S4S};
+\draw[arr] (mcu.east) -| (sw.north);
+\draw[arr] (rf.east)  -| (sw.south);
+\draw[arr] (sw) -- (drv);
+\draw[arr] (drv) -- (pz);
+\draw[<->, thick] (mcu.south) -- (rf.north) node[midway, right, font=\scriptsize] {SPI};
+\node[font=\scriptsize] at (2.6,  1.0) {2 канала};
+\node[font=\scriptsize] at (2.6, -1.0) {EXTTXE};
+\end{tikzpicture}}
+\end{figure}
+\vspace{0.5em}
+\centering\footnotesize
+Аппаратная синхронизация УЗ-пачки и UWB-пакета сигналом EXTTXE ($\Delta t \lesssim 10$\,нс)
+\end{frame}
+
+\begin{frame}{Узел якоря — приёмный тракт}
+\begin{figure}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  blk/.style={draw, thick, rectangle, minimum width=2.9cm, minimum height=1.4cm,
+               align=center, font=\small, inner sep=4pt},
+  arr/.style={thick, ->}
+]
+\node[blk] (pre) at (0,   0) {Предусилитель\\[-2pt]{\scriptsize INA128P,\;$G{\approx}30\text{--}150$}};
+\node[blk] (amp) at (4.6, 0) {Полосовой усилитель\\[-2pt]{\scriptsize TL072CN,\;25\,кГц}};
+\node[blk] (dem) at (9.2, 0) {Демодулятор\\[-2pt]{\scriptsize Д9Б + LM311P}};
+\draw[arr] (-2.8,0) -- (pre) node[pos=0, left, font=\small, align=right] {УЗ\\приёмник};
+\draw[arr] (pre) -- (amp);
+\draw[arr] (amp) -- (dem);
+\draw[arr] (dem) -- ++(2.4,0) node[right, font=\small] {МК};
+\end{tikzpicture}}
+\end{figure}
+\vspace{0.5em}
+\centering\footnotesize
+Полное усиление ${\sim}60$\,дБ; быстрый компаратор LM311P (задержка ${\sim}200$\,нс)
+\end{frame}
+
+\begin{frame}{Питание узла якоря}
+\begin{figure}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  blk/.style={draw, thick, rectangle, minimum width=2.4cm, minimum height=1.0cm,
+              align=center, font=\small, inner sep=3pt},
+  flt/.style={draw, thick, rectangle, minimum width=2.0cm, minimum height=1.0cm,
+              align=center, font=\scriptsize, inner sep=3pt, fill=black!4},
+  arr/.style={thick, ->}
+]
+\node[font=\small] (in)   at (-1.6, 0)   {$+24$\,В};
+\node[flt]         (fer)  at (1.0,  0)   {Феррит\\(синф.)};
+\node[flt]         (lc1)  at (3.8,  0)   {$L_1\,C_1$\\100\,мкГн / 100\,мкФ};
+\node[blk]         (dcdc) at (7.2,  0)   {A2412S-2WR3\\[-2pt]{\scriptsize изол.\ DC/DC}};
+\node[flt]         (lcp)  at (10.6,  1.1) {$L_2\,C_2$\\10\,мкГн / 10\,мкФ};
+\node[flt]         (lcm)  at (10.6, -1.1) {$L_2\,C_2$\\10\,мкГн / 10\,мкФ};
+\node[font=\small] (vp)   at (13.2,  1.1) {$+12$\,В};
+\node[font=\small] (vm)   at (13.2, -1.1) {$-12$\,В};
+\draw[arr] (in)   -- (fer);
+\draw[arr] (fer)  -- (lc1);
+\draw[arr] (lc1)  -- (dcdc);
+\draw[arr] (dcdc.east) |- (lcp);
+\draw[arr] (dcdc.east) |- (lcm);
+\draw[arr] (lcp) -- (vp);
+\draw[arr] (lcm) -- (vm);
+\end{tikzpicture}}
+\end{figure}
+\vspace{0.5em}
+\centering\footnotesize
+Изоляция 1500\,В + двухступенчатая $LC$-фильтрация против наводок 400\,В генератора
+\end{frame}
+
+
 \section{\textbf{Вопросы}}
     
 \begin{frame}

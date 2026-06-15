@@ -19,5 +19,6 @@
             "tools": ["latexmk"]
         }
     ],
-    "latex-workshop.latex.autoBuild.run": "onSave"
+    "latex-workshop.latex.autoBuild.run": "onSave",
+    "idf.currentSetup": "/home/egor/.espressif/v6.0.1/esp-idf"
 }

@@ -1,0 +1,484 @@
+\documentclass[10pt]{beamer}
+\usepackage{fontspec}
+\setmainfont{DejaVu Serif}
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+\usepackage[english,russian]{babel}
+\usepackage{amssymb,amsfonts,amsmath,mathtext}
+\usepackage{cite,enumerate,float,indentfirst}
+\usepackage{ragged2e}
+\usepackage{comment}
+\usecolortheme{whale}
+\usepackage{multirow}
+\setbeamertemplate{caption}[numbered]
+\usepackage{caption}
+\usepackage{fontawesome}
+\usepackage{media9}
+\usepackage{graphicx, animate}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage{booktabs}
+
+
+\setbeamercolor{footline}{fg=blue}
+\setbeamertemplate{footline}{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.93\paperwidth,ht=2.25ex,dp=1ex,center]{}%
+    {\small МНШ лаб. 69 «Разработка теоретических основ и методов практической реализации ЛНС привязной высотной беспилотной платформы»}
+     %МНШ лаб. 69, руководитель д.т.н., проф., Вишневский В.М.
+   \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.07\paperwidth,ht=2.25ex,dp=1ex,right]{}%
+  \insertframenumber{} / \inserttotalframenumber \hspace*{2ex}
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+\begin{document}
+
+\begin{frame}
+\begin{center}
+{\large\bf Разработка и исследование системы ультразвуковой\\
+локальной навигации привязной высотной\\
+беспилотной платформы}
+\end{center}
+
+\vfill
+
+
+\title{Разработка и исследование системы ультразвуковой локальной навигации привязной высотной беспилотной платформы}
+\author{}
+\institute{}
+\date{}
+\titlegraphic{}
+
+\begin{frame}
+\vspace{-4cm}
+\maketitle
+\vspace{-3.5cm}
+\begin{tabular}{llr}
+{\large Смирнов Егор Ильич}
+ & $\quad$ & \multirow{4}{*}{\includegraphics[height=4cm]{Figures/My_photo.jpg}}  \\
+ &  & \\
+Техник лаб. 69 & &\\ 
+Студент 4 курса МФТИ &  &\\ 
+ \end{tabular}
+\end{frame}
+
+\begin{frame}{Постановка задачи}
+\begin{figure}
+\centering
+\includegraphics[width=0.78\linewidth]{Figures/system.png}
+\caption{}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Задачи исследования}
+\begin{enumerate}
+\justifying
+\item Анализ предельных характеристик ультразвукового канала: максимальная дальность, бюджет погрешности.
+\item Построение математической модели погрешности позиционирования.
+\item Сравнение алгоритмов вычисления координат: аналитического и вычислительного.
+\item Разработка систем синхронизации, приёмного и передающего трактов.
+\end{enumerate}
+\end{frame}
+
+
+\begin{frame}{Максимальная дальность}
+\justifying
+Интенсивность звука в атмосфере затухает экспоненциально:
+\begin{equation*}
+  I = I_0 e^{-\alpha r}, \text{ где}
+  \end{equation*}
+  {\footnotesize
+  \begin{align*}
+  \alpha &=
+  8.686 \, f^2
+  \Biggl[
+  \frac{1.84 \times 10^{-11}}{p}
+  \sqrt{\frac{T}{293.15}}
+  \\[0.5em]
+  &\quad+
+  \left(\frac{T}{293.15}\right)^{-5/2}
+  \left(
+  \frac{0.01275 e^{-2239.1/T}}{f_{r,\mathrm{O}} + f^2/f_{r,\mathrm{O}}}
+  +
+  \frac{0.1068 e^{-3352/T}}{f_{r,\mathrm{N}} + f^2/f_{r,\mathrm{N}}}
+  \right)
+  \Biggr],\text{ где}
+  \end{align*}
+  }
+  {\footnotesize
+  \begin{itemize}
+  \item $r$ - расстояние, м;
+  \item $f$ — частота звука, Гц;
+  \item $T$ — абсолютная температура, К;
+  \item $p$ — атмосферное давление, кПа;
+  \item $f_{r,\mathrm{O}}$, $f_{r,\mathrm{N}}$ — частоты релаксации кислорода и азота.
+  \end{itemize}
+  }
+
+\end{frame}
+
+\begin{frame}{Точность измерения расстояния}
+\justifying
+Точность измерения дистанции определяется точностью измерений времени:
+\begin{equation*}
+\sigma_d = c\Delta t.
+\end{equation*}
+
+\smallskip
+
+Характерные значения:
+\begin{table}[h]
+\centering
+\begin{tabular}{cc}
+\toprule
+$\Delta t$ & $\sigma_d$ \\
+\midrule
+1~мкс    & 0{,}17~мм \\
+10~мкс   & 1{,}7~мм \\
+100~мкс  & 17~мм   \\
+1000~мкс & 17~см   \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{frame}
+
+
+\begin{frame}{Скорость звука во влажном воздухе}
+\justifying
+Скорость звука в смеси сухого воздуха и водяного пара:
+\begin{equation*}
+c = \sqrt{\gamma\, R_{\mathrm{mix}}\, T},
+\end{equation*}
+
+\smallskip
+
+\begin{itemize}
+\item $\gamma = c_{p,\mathrm{mix}} / c_{v,\mathrm{mix}}$ — показатель адиабаты смеси;
+\item $R_{\mathrm{mix}} = R / M_{\mathrm{mix}}$ — удельная газовая постоянная;
+\item $M_{\mathrm{mix}} = (1 - x_v) M_d + x_v M_v$ — молярная масса смеси;
+\item $x_v = p_v / p$ — мольная доля водяного пара;
+\item $p_v = h\, p_{\mathrm{sat}}(T)$ — парциальное давление водяного пара;
+\item $T$ — абсолютная температура.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Погрешность скорости звука}
+\justifying
+Полная погрешность скорости:
+\begin{equation*}
+\Delta c = \sqrt{\left(\tfrac{\partial c}{\partial T}\Delta T\right)^2
++ \left(\tfrac{\partial c}{\partial p}\Delta p\right)^2
++ \left(\tfrac{\partial c}{\partial h}\Delta h\right)^2
++ \Delta_{\text{мод}}^2}.
+\end{equation*}
+
+\smallskip
+
+При типичных датчиках:
+\begin{itemize}
+\item $\Delta T = \pm 0{,}5\,^\circ$C $\;\Rightarrow\;\Delta c_T \approx 0{,}30$~м/с;
+\item $\Delta p = \pm 120$~Па $\;\Rightarrow\;\Delta c_p \approx 0{,}06$~м/с;
+\item $\Delta h = \pm 3\%$ $\;\Rightarrow\;\Delta c_h \approx 0{,}002$~м/с;
+\item $\Delta_{\text{мод}} \approx 0{,}31$~м/с.
+\end{itemize}
+
+\bigskip
+
+{\bf Итого:} $\Delta c \approx 0{,}43$~м/с $(\pm 0{,}13\%)$.
+
+\end{frame}
+
+
+\begin{frame}{Ошибка координат и GDOP}
+\justifying
+
+\begin{minipage}{0.55\textwidth}
+\justifying
+{\bf GDOP} (Geometric Dilution of Precision) — коэффициент геометрического ослабления точности.
+
+\bigskip
+
+Из-за относительно малой базы якорей на платформе ошибка определения координат в плоскости XY значительно превышает ошибку измерения расстояния.
+
+\end{minipage}
+\hfill
+\begin{minipage}{0.42\textwidth}
+\centering
+\includegraphics[width=0.99\linewidth]{Figures/trilateration-geometry.png}
+\captionof{figure}{}
+\end{minipage}
+
+\end{frame}
+
+
+\begin{frame}{GDOP — аналитическая формула}
+\justifying
+
+Для четырёх якорей в вершинах квадрата со стороной $a$ и объекта на высоте $H$:
+
+\begin{equation*}
+D = \sqrt{\tfrac{a^2}{2} + H^2} \quad \text{— расстояние до якоря}.
+\end{equation*}
+
+\begin{block}{}
+\centering
+\boxed{\;\sigma_{xyz} = \sigma_d \cdot D \cdot \sqrt{\tfrac{2}{a^2} + \tfrac{1}{4H^2}}\;}
+\end{block}
+
+\bigskip
+
+\begin{itemize}
+\item $\sigma_{xyz}$ — СКО положения в 3D;
+\item $\sigma_d$ — СКО измерения расстояния;
+\item $a$ — сторона квадрата якорей;
+\item $H$ — высота объекта.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{GDOP — зависимость от геометрии}
+\begin{figure}
+\centering
+\includegraphics[width=0.95\linewidth]{Figures/gdop-vs-anchor-distance.png}
+\caption{}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}{Метод Гаусса--Ньютона}
+\justifying
+
+Итерационная минимизация суммы взвешенных квадратов невязок:
+
+\begin{equation*}
+\boxed{\;\min_{\mathbf{p}}\; J(\mathbf{p}),
+\qquad
+J(\mathbf{p}) = \sum_{i=1}^{N} w_i \bigl(\hat r_i - \|\mathbf{p} - \mathbf{a}_i\|\bigr)^2\;}
+\end{equation*}
+
+\bigskip
+
+\begin{itemize}
+\item $\hat r_i$ — измеренное расстояние от $i$-го якоря до объекта;
+\item $\mathbf{a}_i$ — координаты $i$-го якоря;
+\item $\mathbf{p}$ — искомые координаты объекта;
+\item $w_i$ — вес измерения (обычно обратный дисперсии);
+\item $J(\mathbf{p})$ — целевая функция.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Аналитический метод}
+\justifying
+Координаты точки $P$ удовлетворяют системе уравнений трёх сфер:
+\begin{equation*}
+(x - x_i)^2 + (y - y_i)^2 + z^2 = r_i^2, \qquad i = 1, 2, 3.
+\end{equation*}
+
+\smallskip
+
+Вычитая первое уравнение, получаем линейную систему по $(x, y)$:
+\begin{align*}
+2(x_2 - x_1)\,x + 2(y_2 - y_1)\,y &= r_1^2 - r_2^2 + x_2^2 - x_1^2 + y_2^2 - y_1^2, \\
+2(x_3 - x_1)\,x + 2(y_3 - y_1)\,y &= r_1^2 - r_3^2 + x_3^2 - x_1^2 + y_3^2 - y_1^2.
+\end{align*}
+
+\smallskip
+
+В матричной форме:
+\begin{equation*}
+A \begin{pmatrix} x \\ y \end{pmatrix} = \mathbf{b},
+\qquad
+\begin{pmatrix} x \\ y \end{pmatrix} = A^{-1} \mathbf{b}.
+\end{equation*}
+
+\smallskip
+
+Координата $z$ восстанавливается из одного из исходных уравнений:
+\begin{equation*}
+z = \pm\sqrt{r_1^2 - (x - x_1)^2 - (y - y_1)^2}.
+\end{equation*}
+
+\end{frame}
+
+
+\begin{frame}{Аналитический метод — выбор тройки якорей}
+\begin{figure}
+\centering
+\includegraphics[width=0.95\linewidth]{Figures/anchor-triplet-selection.png}
+\caption{}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}{Сравнение методов}
+\justifying
+Зависимость ошибки локализации от дисперсии шума измерений:
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{Figures/error_vs_variance.png}
+\caption{}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}{Таблица погрешностей}
+\justifying
+\small
+
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{footnotesize}
+Аналитический метод, $H = 25$~м, $n = 1000$
+\end{footnotesize}
+
+\smallskip
+
+\begin{tabular}{ccc}
+\toprule
+$\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
+\midrule
+0{,}002 & 3{,}44   & 15{,}51  \\
+0{,}005 & 6{,}98   & 16{,}56  \\
+0{,}010 & 12{,}78  & 18{,}87  \\
+0{,}050 & 62{,}52  & 57{,}98  \\
+0{,}100 & 128{,}21 & 116{,}31 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{footnotesize}
+Метод Гаусса--Ньютона, $H = 25$~м, $n = 1000$
+\end{footnotesize}
+
+\smallskip
+
+\begin{tabular}{ccc}
+\toprule
+$\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
+\midrule
+0{,}002 & 3{,}44   & 3{,}43   \\
+0{,}005 & 6{,}83   & 6{,}69   \\
+0{,}010 & 12{,}96  & 12{,}59  \\
+0{,}050 & 62{,}68  & 62{,}58  \\
+0{,}100 & 128{,}78 & 125{,}42 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+
+\end{frame}
+
+
+\begin{frame}{Передающий узел БПЛА}
+\begin{figure}
+\centering
+\resizebox{0.95\linewidth}{!}{%
+\begin{tikzpicture}[
+  blk/.style={draw, thick, rectangle, minimum width=2.6cm, minimum height=1.1cm,
+              align=center, font=\small, inner sep=3pt},
+  arr/.style={thick, ->}
+]
+\node[blk] (mcu)  at (0,    1.4) {ESP32\\[-2pt]{\scriptsize $A$, $B$: 25\,кГц + OOK}};
+\node[blk] (rf)   at (0,   -1.4) {DWM1000\\[-2pt]{\scriptsize Delayed TX}};
+\node[blk] (sw)   at (4.8,  0)   {SN74HC4066\\[-2pt]{\scriptsize 2 ключа: $A$, $B$}};
+\node[blk] (drv)  at (8.8,  0)   {TC4427A\\[-2pt]{\scriptsize драйвер (мост)}};
+\node[blk] (pz)   at (12.4, 0)   {MA40S4S};
+\draw[arr] (mcu.east) -| (sw.north);
+\draw[arr] (rf.east)  -| (sw.south);
+\draw[arr] (sw) -- (drv);
+\draw[arr] (drv) -- (pz);
+\draw[<->, thick] (mcu.south) -- (rf.north) node[midway, right, font=\scriptsize] {SPI};
+\node[font=\scriptsize] at (2.6,  1.0) {2 канала};
+\node[font=\scriptsize] at (2.6, -1.0) {EXTTXE};
+\end{tikzpicture}}
+\caption{}
+\end{figure}
+
+\bigskip
+
+\centering
+Аппаратная синхронизация УЗ-пачки и UWB-пакета сигналом EXTTXE\\
+\end{frame}
+
+
+\begin{frame}{Приёмный тракт якоря}
+\begin{figure}
+\centering
+\resizebox{0.95\linewidth}{!}{%
+\begin{tikzpicture}[
+  blk/.style={draw, thick, rectangle, minimum width=2.9cm, minimum height=1.4cm,
+               align=center, font=\small, inner sep=4pt},
+  arr/.style={thick, ->}
+]
+\node[blk] (pre) at (0,   0) {Предусилитель\\[-2pt]{\scriptsize INA128P,\;$G{\approx}30\text{--}150$}};
+\node[blk] (amp) at (4.6, 0) {Полосовой усилитель\\[-2pt]{\scriptsize TL072CN,\;25\,кГц}};
+\node[blk] (dem) at (9.2, 0) {Демодулятор\\[-2pt]{\scriptsize Д9Б + LM311P}};
+\draw[arr] (-2.8,0) -- (pre) node[pos=0, left, font=\small, align=right] {УЗ\\приёмник};
+\draw[arr] (pre) -- (amp);
+\draw[arr] (amp) -- (dem);
+\draw[arr] (dem) -- ++(2.4,0) node[right, font=\small] {МК};
+\end{tikzpicture}}
+\caption{}
+\end{figure}
+
+\bigskip
+
+\end{frame}
+
+
+\begin{frame}{Питание узла якоря}
+\begin{figure}
+\centering
+\resizebox{0.95\linewidth}{!}{%
+\begin{tikzpicture}[
+  blk/.style={draw, thick, rectangle, minimum width=2.4cm, minimum height=1.0cm,
+              align=center, font=\small, inner sep=3pt},
+  flt/.style={draw, thick, rectangle, minimum width=2.0cm, minimum height=1.0cm,
+              align=center, font=\scriptsize, inner sep=3pt, fill=black!4},
+  arr/.style={thick, ->}
+]
+\node[font=\small] (in)   at (-1.6, 0)   {$+24$\,В};
+\node[flt]         (fer)  at (1.0,  0)   {Феррит\\(синф.)};
+\node[flt]         (lc1)  at (3.8,  0)   {$L_1\,C_1$\\100\,мкГн / 100\,мкФ};
+\node[blk]         (dcdc) at (7.2,  0)   {A2412S-2WR3\\[-2pt]{\scriptsize изол.\ DC/DC}};
+\node[flt]         (lcp)  at (10.6,  1.1) {$L_2\,C_2$\\10\,мкГн / 10\,мкФ};
+\node[flt]         (lcm)  at (10.6, -1.1) {$L_2\,C_2$\\10\,мкГн / 10\,мкФ};
+\node[font=\small] (vp)   at (13.2,  1.1) {$+12$\,В};
+\node[font=\small] (vm)   at (13.2, -1.1) {$-12$\,В};
+\draw[arr] (in)   -- (fer);
+\draw[arr] (fer)  -- (lc1);
+\draw[arr] (lc1)  -- (dcdc);
+\draw[arr] (dcdc.east) |- (lcp);
+\draw[arr] (dcdc.east) |- (lcm);
+\draw[arr] (lcp) -- (vp);
+\draw[arr] (lcm) -- (vm);
+\end{tikzpicture}}
+\caption{}
+\end{figure}
+
+\bigskip
+
+\centering
+Изоляция 1500~В + двухступенчатая $LC$-фильтрация против наводок $400$~В генератора.
+\end{frame}
+
+\begin{frame}{План дальнейших исследований}
+  
+  \begin{enumerate}
+    \justifying
+    \item Проведение полевых испытаний системы локальной навигации.
+    \item Анализ и верификация полученных данных.
+    \end{enumerate}
+  
+\end{frame}
+

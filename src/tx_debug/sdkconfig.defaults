@@ -1,0 +1,5 @@
+# Target chip
+CONFIG_IDF_TARGET="esp32s3"
+
+# Console on native USB (USB-Serial-JTAG) so logs reach /dev/ttyACM0
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y

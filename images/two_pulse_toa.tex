@@ -1,0 +1,109 @@
+% Временная диаграмма двухимпульсной самокалибровки ToA.
+% Сборка: xelatex two_pulse_toa.tex  (standalone, шрифты как в основном тезисе)
+\documentclass[border=6pt]{standalone}
+\usepackage{fontspec}
+\usepackage[english,russian]{babel}
+\setmainfont{DejaVu Serif}
+\setsansfont{DejaVu Sans}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing, arrows.meta, calc}
+
+\begin{document}
+\begin{tikzpicture}[
+  font=\sffamily\small,
+  declare function={
+    % трапецеидальная огибающая: быстрый фронт -> плато -> спад
+    env(\u) = 1.4*max(0,min(\u,1))*((\u<2.5) + (\u>=2.5)*exp(-(\u-2.5)/1.1));
+  },
+  carrier/.style={blue!70!black, line width=0.5pt},
+  envel/.style  ={red!75!black, line width=1.1pt},
+  comp/.style   ={black, line width=1.1pt},
+  axis/.style   ={gray!55, line width=0.6pt, -{Stealth}},
+  vth/.style    ={gray, dashed, line width=0.7pt},
+  marker/.style ={gray!60, dotted, line width=0.7pt},
+  win/.style    ={fill=orange!12},
+  brace/.style  ={decorate, decoration={brace, amplitude=5pt, mirror}, line width=0.8pt},
+]
+
+% --- параметры импульсов ---
+\def\onA{2.0}\def\onB{7.0}    % t0  (старт роста = реальный приход)
+\def\tcA{2.6}\def\tcB{7.6}    % t_c (срабатывание компаратора)
+\def\cfA{5.06}\def\cfB{10.06} % спад компаратора
+\def\yR{9.0}                  % ось Ox сигнала с усилителя
+\def\yE{5.6}                  % ось Ox огибающей
+\def\yV{6.44}                 % порог V_th
+\def\yClo{2.5}\def\yChi{3.3}  % компаратор (low=ось Ox, high)
+\def\xL{0.7}\def\xR{11.0}
+
+% === окно АЦП вокруг фронта 2-го импульса (фон) ===
+\fill[win] (6.7,1.9) rectangle (8.3,9.5);
+
+% === вертикальные метки времени ===
+\foreach \x in {\onA,\tcA,\onB,\tcB}
+  \draw[marker] (\x,1.85) -- (\x,9.4);
+
+% =========================================================
+% Лейн 1: сигнал с усилителя (две пачки 25 кГц), ось Ox
+% =========================================================
+\node[anchor=east, align=right, text width=2.5cm] at (\xL-0.1,\yR)
+     {Сигнал\\с усилителя};
+\draw[axis] (\xL,\yR) -- (\xR+0.25,\yR) node[right, black]{$t$};
+\draw[carrier] plot[domain=\onA:6.2, samples=360, smooth]
+     (\x, {\yR + 0.62*env(\x-\onA)/1.4*sin(1000*(\x-\onA))});
+\draw[carrier] plot[domain=\onB:11.0, samples=360, smooth]
+     (\x, {\yR + 0.62*env(\x-\onB)/1.4*sin(1000*(\x-\onB))});
+
+% =========================================================
+% Лейн 2: огибающая (выход детектора) + порог, ось Ox
+% =========================================================
+\node[anchor=east, align=right, text width=2.5cm] at (\xL-0.1,\yE+0.6)
+     {Огибающая\\(детектор)};
+\draw[axis] (\xL,\yE) -- (\xR+0.25,\yE) node[right, black]{$t$};
+\draw[envel] plot[domain=\onA:6.9, samples=240, smooth] (\x,{\yE+env(\x-\onA)});
+\draw[envel] plot[domain=\onB:11.0, samples=240, smooth] (\x,{\yE+env(\x-\onB)});
+\draw[vth] (\xL,\yV) -- (\xR,\yV);
+\node[gray!55!black, anchor=west, font=\sffamily\footnotesize] at (\xR,\yV) {$V_{th}$};
+% отсчёты АЦП на фронте 2-го импульса
+\foreach \x in {7.0,7.2,7.4,7.6,7.8,8.0}
+  \fill[orange!75!black] (\x,{\yE+env(\x-\onB)}) circle (1.6pt);
+
+% метки стартов роста
+\node[teal!45!black, anchor=north east, font=\sffamily\footnotesize] at (\onA,\yE-0.04) {$t_{0,1}$};
+\node[teal!45!black, anchor=north east, font=\sffamily\footnotesize] at (\onB,\yE-0.04) {$t_{0,2}$};
+% =========================================================
+% Лейн 3: выход компаратора, ось Ox
+% =========================================================
+\node[anchor=east, align=right, text width=2.5cm] at (\xL-0.1,{(\yClo+\yChi)/2})
+     {Выход\\компаратора};
+\draw[axis] (\xL,\yClo) -- (\xR+0.25,\yClo) node[right, black]{$t$};
+\draw[comp]
+  (\xL,\yClo) -- (\tcA,\yClo) -- (\tcA,\yChi) -- (\cfA,\yChi) -- (\cfA,\yClo)
+  -- (\tcB,\yClo) -- (\tcB,\yChi) -- (\cfB,\yChi) -- (\cfB,\yClo) -- (\xR,\yClo);
+\node[anchor=south west, font=\sffamily\footnotesize] at (\tcA,\yChi-0.02) {$t_{c1}$};
+\node[anchor=south west, font=\sffamily\footnotesize] at (\tcB,\yChi-0.02) {$t_{c2}$};
+
+% =========================================================
+% δ-скобки: от старта роста (t0) до срабатывания компаратора (t_c)
+% =========================================================
+\draw[brace] (\onB,4.55) -- (\tcB,4.55);
+\node[anchor=north, font=\sffamily\footnotesize] at ({(\onB+\tcB)/2},4.45)
+     {$\delta=t_{c2}-t_{0,2}$};
+\draw[brace] (\onA,4.55) -- (\tcA,4.55);
+\node[anchor=north, font=\sffamily\footnotesize] at ({(\onA+\tcA)/2},4.45) {$\delta$};
+
+% перенос δ (импульсы идентичны)
+\node[blue!55!black, anchor=center, align=center, font=\sffamily\footnotesize]
+      at (4.85,5.15) {$\delta$ одинаков\\(импульсы идентичны)};
+
+% итог: несмещённый ToA первого импульса = t_c1 - δ = t_{0,1}
+\node[anchor=north, align=center, font=\sffamily\footnotesize, text=red!75!black]
+      at (\onA,1.78) {несмещённый ToA\\$t_{c1}-\delta=t_{0,1}$};
+
+% легенда окна АЦП
+\fill[win, draw=orange!45, line width=0.5pt] (6.3,1.45) rectangle (6.65,1.78);
+\node[anchor=west, font=\sffamily\footnotesize] at (6.75,1.62)
+     {{}--- окно АЦП $\approx$\,500\,мкс};
+
+\end{tikzpicture}
+\end{document}
