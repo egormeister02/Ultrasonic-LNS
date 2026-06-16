@@ -1,46 +1,42 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Симуляция: три якоря в форме равностороннего треугольника
-# меняем размер треугольника - расстояние между якорями
+# Ошибка позиционирования по выведенной 3D-модели (раздел «Точность определения координат»):
+# четыре якоря в вершинах квадрата со стороной a в плоскости z=0, объект на высоте H над центром.
+#   sigma_xyz = sigma_d * D * sqrt(2/a^2 + 1/(4 H^2)),   D = sqrt(a^2/2 + H^2)
+# (та же формула, что в тексте; раньше график считался по другой, 2D, формуле — устранено).
 
-sigma_d = 0.004 # м (ошибка измерения расстояния, соответствующая 1 мкс дискретизации)
+sigma_d = 0.003   # м, СКО измерения дальности (см. бюджет случайной ошибки, sigma_d ≈ 3 мм)
+H = 25            # м, высота объекта над платформой
 
-def calculate_gdop(side_length, distance_to_anchors):
-    """
-    Расчёт GDOP для равностороннего треугольника якорей
-    side_length - сторона треугольника
-    distance_to_anchors - расстояние от объекта до якорей
-    """
-    # Площадь треугольника
-    S = (side_length**2) * np.sqrt(3) / 4
-    
-    # Формула: sigma_xy = sigma_d * D / sqrt(2*S)
-    sigma_xy = sigma_d * distance_to_anchors / np.sqrt(2 * S)
-    
-    return sigma_xy
 
-# Диапазон расстояний между якорями (0.1 до 5 метров)
-side_lengths = np.linspace(0.5, 5, 100)
+def sigma_xyz(a, H, sigma_d):
+    D = np.sqrt(a**2 / 2 + H**2)
+    return sigma_d * D * np.sqrt(2 / a**2 + 1 / (4 * H**2))
 
-# Фиксированное расстояние до якорей
-D = 25  # метров (как в примере из документа)
 
-errors = [calculate_gdop(s, D) for s in side_lengths]
+a_vals = np.linspace(0.5, 5, 200)
+errors = sigma_xyz(a_vals, H, sigma_d) * 100  # в сантиметрах
 
 plt.figure(figsize=(10, 6))
-plt.plot(side_lengths, errors, 'b-', linewidth=2)
-plt.xlabel('Расстояние между якорями, м', fontsize=12)
-plt.ylabel('Ошибка координаты sigma_xy, м', fontsize=12)
-plt.title(f'Зависимость ошибки позиционирования от взаимного расположения якорей', fontsize=14)
+plt.plot(a_vals, errors, 'b-', linewidth=2)
+plt.xlabel('Расстояние между якорями $a$, м', fontsize=12)
+plt.ylabel('СКО положения $\\sigma_{xyz}$, см', fontsize=12)
+plt.title('Зависимость ошибки позиционирования от размера базы якорей\n'
+          f'($\\sigma_d = {sigma_d*1000:.0f}$ мм, $H = {H}$ м)', fontsize=14)
 plt.grid(True, alpha=0.3)
-plt.xlim(0.1, 5)
-plt.ylim(0, max(errors)*1.1)
+plt.xlim(0.5, 5)
+plt.ylim(0, max(errors) * 1.1)
 
-# Вертикальная линия для текущего случая (диагональ 2м = сторона ~1.4м)
-plt.axvline(x=2, color='r', linestyle='--', label='Текущая конфигурация (сторона ~2м)')
-plt.legend()
+# Рабочая конфигурация
+a0 = 2.0
+e0 = sigma_xyz(a0, H, sigma_d) * 100
+plt.axvline(x=a0, color='r', linestyle='--',
+            label=f'Рабочая конфигурация: $a = {a0:.0f}$ м, $\\sigma_{{xyz}} \\approx {e0:.0f}$ см')
+plt.plot([a0], [e0], 'ro')
+plt.legend(fontsize=11)
 
 plt.tight_layout()
 plt.savefig('./images/gdop-vs-anchor-distance.png', dpi=150)
+print(f"sigma_xyz(a=2 м, H=25 м, sigma_d=3 мм) = {e0:.2f} см")
 print("График сохранён")

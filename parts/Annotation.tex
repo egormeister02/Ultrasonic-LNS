@@ -1,0 +1,52 @@
+\begin{center}
+    \large{\input{include/work-title.tex}} \\[0.3cm]
+    \large\textit{Смирнов Егор Ильич} \\[1cm]
+    \textbf{Аннотация}
+\end{center}
+
+\vspace{0.5cm}
+
+В работе разработана ультразвуковая локальная навигационная система для
+определения координат привязного беспилотного летательного аппарата (БПЛА)
+относительно наземной платформы (в том числе подвижной) в условиях
+недоступности или ненадёжности глобальных навигационных спутниковых систем.
+Расстояния до опорных узлов (якорей) измеряются по времени распространения
+ультразвукового сигнала; временная синхронизация передающей и приёмной сторон
+выполняется по сверхширокополосному (UWB) радиоканалу, а координаты
+восстанавливаются методом трилатерации.
+
+Построена математическая модель системы: оценены максимальная дальность работы,
+погрешность определения скорости звука во влажном воздухе, влияние геометрии
+якорей (GDOP) и проведён сравнительный анализ аналитического метода трилатерации
+и метода Гаусса--Ньютона. Разработана и собрана аппаратная часть: передающий узел
+БПЛА (ESP32-S3 + DWM1000 с аппаратной синхронизацией по сигналу EXTTXE), тракт
+обработки сигнала якоря (INA128P, TL072CN, детектор огибающей, компаратор LM311P) и
+изолированная система питания с защитой от наводок; реализован двухимпульсный метод
+самокалибровки времени прихода. Экспериментально подтверждён уверенный приём на дистанции
+${\approx}34$~м; расчётная погрешность позиционирования~--- порядка $5$~см.
+
+\newpage
+
+\begin{center}
+    \textbf{Abstract}
+\end{center}
+
+\vspace{0.5cm}
+
+This work develops an ultrasonic local navigation system that estimates the
+position of a tethered unmanned aerial vehicle (UAV) relative to a (possibly
+mobile) ground platform under conditions where global navigation satellite
+systems are unavailable or unreliable. Distances to reference nodes (anchors)
+are measured from the time of flight of an ultrasonic signal; the transmitter
+and receiver are time-synchronized over an ultra-wideband (UWB) radio link, and
+the position is recovered by trilateration.
+
+A mathematical model of the system is built: the maximum operating range, the
+error of the speed-of-sound estimate in humid air, and the influence of anchor
+geometry (GDOP) are evaluated, and an analytic trilateration method is compared
+with the Gauss--Newton method. The hardware is designed and assembled: the UAV
+transmitter node (ESP32-S3 + DWM1000 with hardware EXTTXE synchronization), the
+anchor signal-processing chain (INA128P, TL072CN, envelope detector, LM311P
+comparator) and an isolated, interference-protected power supply; a two-pulse
+time-of-arrival self-calibration method is implemented. Reliable reception at ${\approx}34$~m is
+confirmed experimentally; the estimated positioning error is on the order of 5~cm.

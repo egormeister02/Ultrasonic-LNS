@@ -4,13 +4,14 @@
 import numpy as np
 from simulation import run_experiment, SENSORS_4, SENSORS_5
 
-VARIANCE_VALUES = [0.002, 0.005, 0.01, 0.05, 0.1]
+VARIANCE_VALUES = [0.002, 0.003, 0.005, 0.01, 0.05, 0.1]
 N_TRIALS = 1000
-BIAS_STD = 0.0012
+BIAS_STD = 0.0013  # систематическая ошибка скорости звука ~0.13% (см. раздел модели)
 
 
 def generate_table():
     """Генерирует таблицы для обоих методов."""
+    np.random.seed(0)  # воспроизводимость табличных значений
     print("=" * 70)
     print("Analytic метод")
     print("=" * 70)

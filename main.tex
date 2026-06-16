@@ -1,0 +1,42 @@
+\documentclass[a4paper, openany, 14pt]{extarticle}
+
+%% подключаем стандарт библиографии (ГОСТ 7.1)
+\bibliographystyle{gost71u}
+
+%% подключаем преамбулу: в ней содержится подключение всех необходимых пакетов
+\input{include/preambule.tex}
+
+\begin{document}
+    %% титульник (внешний PDF)
+    \includepdf[pages=1,pagecommand={\thispagestyle{empty}}]{85370_title_36619.pdf}
+
+    \setcounter{page}{2}
+
+    %% аннотация
+    \input{parts/Annotation.tex}
+    \newpage
+
+    %% содержание
+    \tableofcontents{}
+    \newpage
+
+    \input{parts/Chapter0.tex} %% Введение
+    \newpage
+    \input{parts/Chapter1.tex} %% Постановка задачи
+    \newpage
+    \input{parts/Chapter2.tex} %% Обзор существующих решений
+    \newpage
+    \input{parts/Chapter3.tex} %% Исследование и построение решения задачи
+    \newpage
+    \input{parts/Chapter4.tex} %% Описание практической части
+    \newpage
+    \input{parts/Chapter5.tex} %% Заключение
+    \newpage
+
+    %% список литературы (ГОСТ)
+    \bibliography{references}
+
+    %% при необходимости подключаем раздел "Приложение"
+    % \newpage
+    % \input{parts/Appendix.tex}
+\end{document}
