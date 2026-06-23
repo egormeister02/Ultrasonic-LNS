@@ -19,14 +19,18 @@
 \usetikzlibrary{arrows.meta,positioning,calc}
 \usepackage{booktabs}
 
+% Маркеры для матрицы сравнения вариантов
+\newcommand{\tgood}{\textcolor{green!55!black}{\checkmark}}
+\newcommand{\tpart}{\textcolor{orange!90!black}{$\circ$}}
+\newcommand{\tbad}{\textcolor{red!70!black}{\textbf{--}}}
 
+
+\setbeamertemplate{navigation symbols}{}
 \setbeamercolor{footline}{fg=blue}
 \setbeamertemplate{footline}{
   \leavevmode%
   \hbox{%
   \begin{beamercolorbox}[wd=.93\paperwidth,ht=2.25ex,dp=1ex,center]{}%
-    {\small МНШ лаб. 69 «Разработка теоретических основ и методов практической реализации ЛНС привязной высотной беспилотной платформы»}
-     %МНШ лаб. 69, руководитель д.т.н., проф., Вишневский В.М.
    \end{beamercolorbox}%
     \begin{beamercolorbox}[wd=.07\paperwidth,ht=2.25ex,dp=1ex,right]{}%
   \insertframenumber{} / \inserttotalframenumber \hspace*{2ex}
@@ -36,50 +40,102 @@
 
 \begin{document}
 
-\begin{frame}
+\begin{frame}[plain]
 \begin{center}
-{\large\bf Разработка и исследование системы ультразвуковой\\
-локальной навигации привязной высотной\\
-беспилотной платформы}
+{\footnotesize
+«Московский физико-технический институт»\\
+Физтех-школа Радиотехники и Компьютерных Технологий\\
+Кафедра инфокоммуникационных систем и сетей
+}
+\end{center}
+
+\medskip
+
+\vfill
+
+\begin{center}
+{
+СРАВНИТЕЛЬНЫЙ АНАЛИЗ ВАРИАНТОВ ПОСТРОЕНИЯ\\
+ЛОКАЛЬНОЙ НАВИГАЦИОННОЙ СИСТЕМЫ ПРИВЯЗНЫХ\\
+ВЫСОТНЫХ БЕСПИЛОТНЫХ ТЕЛЕКОММУНИКАЦИОННЫХ\\
+ПЛАТФОРМ}
+
+\medskip
+
+(бакалаврская работа)
 \end{center}
 
 \vfill
 
+\hfill\begin{minipage}{0.62\textwidth}
+{\footnotesize
+\textbf{Студент:}\\
+Смирнов Егор Ильич\\[0.9em]
+\textbf{Научный руководитель:}\\
+Вишневский Владимир Миронович,\\
+д-р техн.\ наук, проф.
+}
+\end{minipage}
 
-\title{Разработка и исследование системы ультразвуковой локальной навигации привязной высотной беспилотной платформы}
-\author{}
-\institute{}
-\date{}
-\titlegraphic{}
+\vfill
 
-\begin{frame}
-\vspace{-4cm}
-\maketitle
-\vspace{-3.5cm}
-\begin{tabular}{llr}
-{\large Смирнов Егор Ильич}
- & $\quad$ & \multirow{4}{*}{\includegraphics[height=4cm]{Figures/My_photo.jpg}}  \\
- &  & \\
-Техник лаб. 69 & &\\ 
-Студент 4 курса МФТИ &  &\\ 
- \end{tabular}
+\begin{center}
+Москва 2026
+\end{center}
 \end{frame}
+\begin{frame}{Сравнительный анализ вариантов построения ЛНС}
+\justifying
+\small
+Варианты технологии измерения сопоставлены с требованиями постановки задачи (раздел~1):
+
+\smallskip
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Вариант & Без GNSS & $\approx$\,см & Десятки\,м & Низкая цена & Без инфр-ры \\
+\midrule
+GNSS / RTK                & \tbad  & \tgood & \tgood & \tpart & \tpart \\
+Визуальные (VIO)          & \tgood & \tpart & \tpart & \tpart & \tgood \\
+Лидарная одометрия        & \tgood & \tgood & \tgood & \tbad  & \tgood \\
+Motion capture            & \tgood & \tgood & \tpart & \tbad  & \tbad  \\
+UWB-радио                 & \tgood & \tpart & \tgood & \tpart & \tpart \\
+\textbf{Ультразвук + UWB} & \tgood & \tgood & \tgood & \tgood & \tgood \\
+\bottomrule
+\end{tabular}}
+\end{center}
+
+\smallskip
+
+\begin{center}
+{\footnotesize \tgood~--- удовлетворяет \quad \tpart~--- частично \quad \tbad~--- не удовлетворяет}
+\end{center}
+
+\begin{block}{}
+\centering
+Выбран вариант: \textbf{ультразвуковая дальнометрия с синхронизацией по UWB}.
+\end{block}
+\end{frame}
+
+
 
 \begin{frame}{Постановка задачи}
-\begin{figure}
-\centering
-\includegraphics[width=0.78\linewidth]{Figures/system.png}
-\caption{}
-\end{figure}
-\end{frame}
+  \begin{figure}
+  \centering
+  \includegraphics[width=0.78\linewidth]{images/system.png}
+  \caption{}
+  \end{figure}
+  \end{frame}
 
 \begin{frame}{Задачи исследования}
 \begin{enumerate}
 \justifying
-\item Анализ предельных характеристик ультразвукового канала: максимальная дальность, бюджет погрешности.
+\item Анализ предельных характеристик ультразвуковой системы: максимальная дальность, бюджет погрешности.
 \item Построение математической модели погрешности позиционирования.
 \item Сравнение алгоритмов вычисления координат: аналитического и вычислительного.
-\item Разработка систем синхронизации, приёмного и передающего трактов.
+\item Разработка аппаратно-программного решения для реализации системы.
 \end{enumerate}
 \end{frame}
 
@@ -120,33 +176,6 @@
 
 \end{frame}
 
-\begin{frame}{Точность измерения расстояния}
-\justifying
-Точность измерения дистанции определяется точностью измерений времени:
-\begin{equation*}
-\sigma_d = c\Delta t.
-\end{equation*}
-
-\smallskip
-
-Характерные значения:
-\begin{table}[h]
-\centering
-\begin{tabular}{cc}
-\toprule
-$\Delta t$ & $\sigma_d$ \\
-\midrule
-1~мкс    & 0{,}17~мм \\
-10~мкс   & 1{,}7~мм \\
-100~мкс  & 17~мм   \\
-1000~мкс & 17~см   \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\end{frame}
-
-
 \begin{frame}{Скорость звука во влажном воздухе}
 \justifying
 Скорость звука в смеси сухого воздуха и водяного пара:
@@ -160,6 +189,7 @@ c = \sqrt{\gamma\, R_{\mathrm{mix}}\, T},
 \item $\gamma = c_{p,\mathrm{mix}} / c_{v,\mathrm{mix}}$ — показатель адиабаты смеси;
 \item $R_{\mathrm{mix}} = R / M_{\mathrm{mix}}$ — удельная газовая постоянная;
 \item $M_{\mathrm{mix}} = (1 - x_v) M_d + x_v M_v$ — молярная масса смеси;
+\item $M_d$, $M_v$ — молярные массы сухого воздуха и водяного пара;
 \item $x_v = p_v / p$ — мольная доля водяного пара;
 \item $p_v = h\, p_{\mathrm{sat}}(T)$ — парциальное давление водяного пара;
 \item $T$ — абсолютная температура.
@@ -180,7 +210,7 @@ c = \sqrt{\gamma\, R_{\mathrm{mix}}\, T},
 
 \smallskip
 
-При типичных датчиках:
+Для датчика BME280:
 \begin{itemize}
 \item $\Delta T = \pm 0{,}5\,^\circ$C $\;\Rightarrow\;\Delta c_T \approx 0{,}30$~м/с;
 \item $\Delta p = \pm 120$~Па $\;\Rightarrow\;\Delta c_p \approx 0{,}06$~м/с;
@@ -194,6 +224,37 @@ c = \sqrt{\gamma\, R_{\mathrm{mix}}\, T},
 
 \end{frame}
 
+\begin{frame}{Точность измерения расстояния}
+  \justifying
+  
+  \smallskip
+  
+  Случайная ошибка определяется погрешностью при определении времени двух событий: момента излучения
+  ультразвукового сигнала передатчиком и момента его прихода на приёмник.
+  
+  \smallskip
+
+  \begin{equation*}
+  \sigma_d = c\,\Delta t.
+  \end{equation*}
+  
+  Характерные значения:
+  \begin{table}[h]
+  \centering
+  \begin{tabular}{cc}
+  \toprule
+  $\Delta t$ & $\sigma_d$ \\
+  \midrule
+  1~мкс    & 0{,}17~мм \\
+  10~мкс   & 1{,}7~мм \\
+  100~мкс  & 17~мм   \\
+  1000~мкс & 17~см   \\
+  \bottomrule
+  \end{tabular}
+  \end{table}
+  
+  \end{frame}
+  
 
 \begin{frame}{Ошибка координат и GDOP}
 \justifying
@@ -210,7 +271,7 @@ c = \sqrt{\gamma\, R_{\mathrm{mix}}\, T},
 \hfill
 \begin{minipage}{0.42\textwidth}
 \centering
-\includegraphics[width=0.99\linewidth]{Figures/trilateration-geometry.png}
+\includegraphics[width=0.99\linewidth]{images/trilateration-geometry.png}
 \captionof{figure}{}
 \end{minipage}
 
@@ -246,7 +307,7 @@ D = \sqrt{\tfrac{a^2}{2} + H^2} \quad \text{— расстояние до яко
 \begin{frame}{GDOP — зависимость от геометрии}
 \begin{figure}
 \centering
-\includegraphics[width=0.95\linewidth]{Figures/gdop-vs-anchor-distance.png}
+\includegraphics[width=0.95\linewidth]{images/gdop-vs-anchor-distance.png}
 \caption{}
 \end{figure}
 \end{frame}
@@ -313,7 +374,7 @@ z = \pm\sqrt{r_1^2 - (x - x_1)^2 - (y - y_1)^2}.
 \begin{frame}{Аналитический метод — выбор тройки якорей}
 \begin{figure}
 \centering
-\includegraphics[width=0.95\linewidth]{Figures/anchor-triplet-selection.png}
+\includegraphics[width=0.95\linewidth]{images/anchor-triplet-selection.png}
 \caption{}
 \end{figure}
 \end{frame}
@@ -324,7 +385,7 @@ z = \pm\sqrt{r_1^2 - (x - x_1)^2 - (y - y_1)^2}.
 Зависимость ошибки локализации от дисперсии шума измерений:
 \begin{figure}
 \centering
-\includegraphics[width=0.9\linewidth]{Figures/error_vs_variance.png}
+\includegraphics[width=1\linewidth]{images/error_vs_variance.png}
 \caption{}
 \end{figure}
 \end{frame}
@@ -334,7 +395,7 @@ z = \pm\sqrt{r_1^2 - (x - x_1)^2 - (y - y_1)^2}.
 \justifying
 \small
 
-\begin{minipage}{0.48\textwidth}
+\begin{minipage}{0.46\textwidth}
 \centering
 \begin{footnotesize}
 Аналитический метод, $H = 25$~м, $n = 1000$
@@ -342,6 +403,7 @@ z = \pm\sqrt{r_1^2 - (x - x_1)^2 - (y - y_1)^2}.
 
 \smallskip
 
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{ccc}
 \toprule
 $\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
@@ -352,10 +414,10 @@ $\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
 0{,}050 & 62{,}52  & 57{,}98  \\
 0{,}100 & 128{,}21 & 116{,}31 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{minipage}
 \hfill
-\begin{minipage}{0.48\textwidth}
+\begin{minipage}{0.46\textwidth}
 \centering
 \begin{footnotesize}
 Метод Гаусса--Ньютона, $H = 25$~м, $n = 1000$
@@ -363,6 +425,7 @@ $\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
 
 \smallskip
 
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{ccc}
 \toprule
 $\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
@@ -373,7 +436,7 @@ $\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
 0{,}050 & 62{,}68  & 62{,}58  \\
 0{,}100 & 128{,}78 & 125{,}42 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{minipage}
 
 \end{frame}
@@ -414,7 +477,7 @@ $\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
 \begin{frame}{Приёмный тракт якоря}
 \begin{figure}
 \centering
-\resizebox{0.95\linewidth}{!}{%
+\resizebox{1\linewidth}{!}{%
 \begin{tikzpicture}[
   blk/.style={draw, thick, rectangle, minimum width=2.9cm, minimum height=1.4cm,
                align=center, font=\small, inner sep=4pt},
@@ -422,11 +485,15 @@ $\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
 ]
 \node[blk] (pre) at (0,   0) {Предусилитель\\[-2pt]{\scriptsize INA128P,\;$G{\approx}30\text{--}150$}};
 \node[blk] (amp) at (4.6, 0) {Полосовой усилитель\\[-2pt]{\scriptsize TL072CN,\;25\,кГц}};
-\node[blk] (dem) at (9.2, 0) {Демодулятор\\[-2pt]{\scriptsize Д9Б + LM311P}};
+\node[blk] (det) at (9.2,  0)   {Детектор\\[-2pt]{\scriptsize огибающая, Д9Б}};
+\node[blk] (cmp) at (9.2, -2.8) {Компаратор\\[-2pt]{\scriptsize LM311P}};
+\node[font=\small] (mcu) at (13.8, -1.4) {МК};
 \draw[arr] (-2.8,0) -- (pre) node[pos=0, left, font=\small, align=right] {УЗ\\приёмник};
 \draw[arr] (pre) -- (amp);
-\draw[arr] (amp) -- (dem);
-\draw[arr] (dem) -- ++(2.4,0) node[right, font=\small] {МК};
+\draw[arr] (amp) -- (det);
+\draw[arr] (det) -- (cmp);
+\draw[arr] (det.east) -- (mcu);
+\draw[arr] (cmp.east) -- (mcu);
 \end{tikzpicture}}
 \caption{}
 \end{figure}
@@ -436,10 +503,25 @@ $\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
 \end{frame}
 
 
+\begin{frame}{Двухимпульсная самокалибровка момента прихода (ToA)}
+\begin{figure}
+\centering
+\includegraphics[width=0.78\linewidth]{images/two_pulse_toa.png}
+\caption{}
+\end{figure}
+
+\justifying
+{\footnotesize
+Пара идентичных импульсов с интервалом $\Delta T$. АЦП оцифровывает фронт огибающей второго импульса 
+и находит задержку $\delta = t_{c2} - t_{0,2}$ от начала фронта до порога компаратора.
+}
+\end{frame}
+
+
 \begin{frame}{Питание узла якоря}
 \begin{figure}
 \centering
-\resizebox{0.95\linewidth}{!}{%
+\resizebox{1\linewidth}{!}{%
 \begin{tikzpicture}[
   blk/.style={draw, thick, rectangle, minimum width=2.4cm, minimum height=1.0cm,
               align=center, font=\small, inner sep=3pt},
@@ -478,7 +560,10 @@ $\sigma_d$, м & 4 якоря, см & 5 якорей, см \\
     \justifying
     \item Проведение полевых испытаний системы локальной навигации.
     \item Анализ и верификация полученных данных.
+    \item Исследование алгоритмов обработки полученных данных.
     \end{enumerate}
   
 \end{frame}
 
+
+\end{document}

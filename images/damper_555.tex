@@ -1,0 +1,91 @@
+\documentclass[border=6pt]{standalone}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{tempora}
+\usepackage{circuitikz}
+\usetikzlibrary{calc}
+\ctikzset{bipoles/length=0.95cm}
+
+\begin{document}
+\begin{circuitikz}[font=\small]
+
+  % ---- шины питания (демпфер питается от +5 В якоря) ----
+  \draw (-0.6,3.4) coordinate (VCCL) node[left]{+5\,В} -- (13.0,3.4);
+  \draw (-0.6,-3.6) coordinate (GND0) -- (13.0,-3.6) node[right]{GND};
+
+  % ===== выход компаратора LM311 (откр. коллектор) на плате якоря =====
+  \coordinate (COMP) at (0.6,1.2);
+  \draw (0.6,3.4) to[R, l={$R_1$ 10\,к}] (COMP);
+  \draw (COMP) -- ++(0,-1.0) coordinate (MK);
+  \node[below, align=center] at (MK) {\scriptsize к МК\\[-2pt](др.\ плата)};
+  \node[left=1pt] at (COMP) {\scriptsize LM311 (ОК)};
+  \node[circ] at (COMP) {};
+
+  % ===== RC-задержка срабатывания =====
+  \draw (COMP) to[R, l={$R_d$ 9{,}1\,к}] (2.4,1.2) coordinate (A);
+  \draw (A) to[C, l_={$C_d$ 10\,н}] (A|-GND0);
+  \node[align=center] at (1.6,2.7) {\scriptsize $t_{dly}\!\approx\!1{,}1R_dC_d$\\[-2pt]\scriptsize $\approx\!100$\,мкс};
+
+  % ===== TLC555 (моностабиль окна гашения) =====
+  \node[draw, thick, minimum width=2.6cm, minimum height=3.4cm] (IC) at (5.6,0) {\textbf{NE555}};
+  \coordinate (TRIG)  at ($(IC.west)+(0,0.9)$);
+  \coordinate (THDIS) at ($(IC.west)+(0,-0.9)$);
+  \coordinate (OUT)   at (IC.east);
+  \coordinate (VPIN)  at ($(IC.north)+(-0.7,0)$);
+  \coordinate (RST)   at ($(IC.north)+(0.7,0)$);
+  \coordinate (GPIN)  at ($(IC.south)+(-0.7,0)$);
+  \coordinate (CTRL)  at ($(IC.south)+(0.7,0)$);
+  \node[anchor=west]  at (TRIG)  {\scriptsize 2 TRIG};
+  \node[anchor=west]  at (THDIS) {\scriptsize 6,7};
+  \node[anchor=north] at (VPIN)  {\scriptsize 8};
+  \node[anchor=north] at (RST)   {\scriptsize 4};
+  \node[anchor=south] at (GPIN)  {\scriptsize 1};
+  \node[anchor=south] at (CTRL)  {\scriptsize 5};
+  \node[above] at ($(OUT)+(0.45,0)$) {\scriptsize 3 OUT};
+
+  % питание / сброс / земля
+  \draw (VPIN) -- (VPIN|-VCCL);
+  \draw (RST)  -- (RST|-VCCL);
+  \draw (GPIN) -- (GPIN|-GND0);
+  \draw (CTRL) to[C, l_={$C_5$ 10\,н}] (CTRL|-GND0);
+
+  % триггер от RC-задержки
+  \draw (A) -- (A|-TRIG) -- (TRIG);
+  \node[circ] at (A|-TRIG) {};
+
+  % времязадающая цепь окна (R_w к Vcc, C_w к земле, на выводы 6/7)
+  \draw (3.4,3.4) to[R, l={$R_w$ 13\,к}] (3.4,-0.9) coordinate (TT);
+  \draw (TT) -- (THDIS);
+  \draw (TT) to[C, l_={$C_w$ 100\,н}] (TT|-GND0);
+  \node[circ] at (TT) {};
+  \node[align=center] at (1.7,-2.6) {\scriptsize $t_{win}\!\approx\!1{,}1R_wC_w\!\approx\!1{,}5$\,мс};
+
+  % ===== выход на затворы ключа =====
+  \draw (OUT) to[R, l_={$R_g$ 100}] (8.7,0) coordinate (GATE);
+
+  % ===== двунаправленный ключ: 2×MOSFET встречно, общий исток =====
+  \node[nfet, rotate=90] (M1) at (9.6,0.95) {};
+  \node[nfet, rotate=90, yscale=-1] (M2) at (9.6,-0.95) {};
+  \draw (M1.S) -- (M2.S);
+  \coordinate (GB) at ($(M1.G)!0.5!(M2.G)$);
+  \draw (GATE) -- (GB);
+  \draw (GB) -- (M1.G);
+  \draw (GB) -- (M2.G);
+  \node[circ] at (GB) {};
+  \node[align=center] at (9.6,2.7) {\scriptsize 2$\times$MOSFET\\[-2pt]\scriptsize встречно};
+
+  % ===== приёмный пьезо параллельно ключу =====
+  \coordinate (PT) at (11.4,1.7);
+  \coordinate (PB) at (11.4,-1.7);
+  \draw (M1.D) -- (M1.D-|PT) -- (PT);
+  \draw (M2.D) -- (M2.D-|PB) -- (PB);
+  \draw (PT) to[C, l={Пьезо RX}] (PB);
+  \draw (PT) -- ++(0.9,0) node[right]{\scriptsize к INA128P};
+  \draw (PB) -- ++(0.9,0);
+
+  % ===== примечание по питанию якоря =====
+  \node[align=center] at (9.0,-3.05) {\scriptsize тракт INA128P/TL072/LM311: $\pm$12\,В\\[-2pt]логика демпфера (NE555, ключ): +5\,В};
+
+\end{circuitikz}
+\end{document}

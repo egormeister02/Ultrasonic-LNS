@@ -40,7 +40,9 @@ void app_main(void)
     ESP_LOGI(TAG, "[1] DWM1000 OK");
 
     ESP_ERROR_CHECK(carrier_init());
-    ESP_LOGI(TAG, "[2] несущая %u Гц запущена; начинаем цикл...", (unsigned)CARRIER_HZ);
+    carrier_start_freq_trim();   // подстройка частоты делителем 0–3.3 В на GPIO1 (±CARRIER_TRIM_HZ)
+    ESP_LOGI(TAG, "[2] несущая %u Гц запущена (подстройка ±%u Гц делителем на GPIO1); начинаем цикл...",
+             (unsigned)CARRIER_HZ, (unsigned)CARRIER_TRIM_HZ);
 
     // Паддинг 0xAA выдерживает нужную длину кадра (= длительность импульса).
     // DATA_PAYLOAD_LEN байт + 2 CRC (аппаратно) -> эфирное время = PULSE_US_NOM.
